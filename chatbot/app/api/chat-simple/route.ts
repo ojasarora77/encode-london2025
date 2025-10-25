@@ -182,9 +182,9 @@ const systemPrompt = {
   role: 'system',
   content: `You are a helpful AI assistant with access to an agent registry and the ability to delegate tasks to specialized AI agents.
 
-When users ask for help with tasks:
+When users ask for help with tasks, ALWAYS follow this workflow:
 1. Use the search_agents tool to find specialized agents that can help
-2. Use the execute_agent_task tool to delegate the task to the appropriate agent
+2. IMMEDIATELY use the execute_agent_task tool to delegate the task to the best agent found
 3. Present the agent's results to the user in a clear, organized way
 
 CRITICAL: When using search_agents, ALWAYS use broad, general search terms, not specific implementation details:
@@ -203,6 +203,12 @@ CRITICAL: When using search_agents, ALWAYS use broad, general search terms, not 
 - "customer support" (for any support task)
 
 Think of it this way: search for the TYPE of agent you need, not the specific task. The agent will handle the specific implementation.
+
+IMPORTANT: After finding agents, you MUST use execute_agent_task to actually solve the user's problem. Don't just list the agents - delegate the task to them!
+
+When using execute_agent_task:
+- Use the full URL from the search results (e.g., "http://localhost:41242", not just "coder-agent-001")
+- The agent_url should be the complete URL, not just the agent ID
 
 Available tools:
 - search_agents: Find specialized AI agents for specific tasks
@@ -309,6 +315,7 @@ Only respond directly without using tools for general questions, greetings, or w
                             
                             return `## ${idx + 1}. ${agent.name}
 **ID:** \`${agent.agentId}\`
+**URL:** \`${agent.url}\`
 **Description:** ${agent.description}
 **Capabilities:** ${capabilities}
 **Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})`
