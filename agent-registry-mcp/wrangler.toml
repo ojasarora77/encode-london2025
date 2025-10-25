@@ -1,5 +1,5 @@
 name = "agent-registry-mcp"
-main = "src/index-x402-simple.js"
+main = "src/index-integrated.js"
 compatibility_date = "2024-10-25"
 compatibility_flags = ["nodejs_compat"]
 

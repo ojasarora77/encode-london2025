@@ -1,8 +1,20 @@
 import { getEnv } from './lib/env.js';
+import { VeniceEmbeddingService } from './services/embedding.service.ts';
+import { PineconeVectorService } from './services/vector.service.ts';
+import { AgentIndexerService } from './services/indexer.service.ts';
 
 export default {
   async fetch(request, env, ctx) {
     const config = getEnv(env);
+    
+    // Initialize services
+    const embeddingService = new VeniceEmbeddingService(config.VENICE_API_KEY);
+    const vectorService = new PineconeVectorService(
+      config.PINECONE_API_KEY,
+      config.PINECONE_ENVIRONMENT,
+      config.PINECONE_INDEX_NAME
+    );
+    const indexerService = new AgentIndexerService(embeddingService, vectorService);
     
     // Handle HTTP requests
     if (request.method === 'POST') {
@@ -98,7 +110,7 @@ export default {
                       amount: '0.001',
                       currency: 'USDC',
                       network: config.NETWORK,
-                      recipient: '0x8eABe48fb32EA35C31DAeD3d7b41388A018F86cF', // Your wallet address
+                      recipient: config.SELLER_ADDRESS,
                       description: 'Agent Registry Search - $0.001 USDC'
                     }
                   }
@@ -112,7 +124,7 @@ export default {
                   'X-402-Amount': '0.001',
                   'X-402-Currency': 'USDC',
                   'X-402-Network': config.NETWORK,
-                  'X-402-Recipient': '0x8eABe48fb32EA35C31DAeD3d7b41388A018F86cF'
+                  'X-402-Recipient': config.SELLER_ADDRESS
                 }
               });
             }
@@ -141,27 +153,11 @@ export default {
               console.log(`   Limit: ${limit}`);
               console.log(`   Payment: ${paymentTx ? 'Verified' : 'Not required'}`);
 
-              // Call the agent registry API
-              const response = await fetch(`${config.AGENT_REGISTRY_URL}/api/agents/search`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  query,
-                  limit,
-                  filters,
-                }),
-              });
-
-              if (!response.ok) {
-                throw new Error(`Agent registry API error: ${response.status} ${response.statusText}`);
-              }
-
-              const data = await response.json();
+              // Use the integrated indexer service directly
+              const results = await indexerService.searchAgents(query, limit, filters);
 
               // Format results for MCP
-              const formattedResults = data.results.map((result) => ({
+              const formattedResults = results.results.map((result) => ({
                 rank: result.rank,
                 agentId: result.agentId,
                 name: result.name,
@@ -180,16 +176,16 @@ export default {
                     {
                       type: 'text',
                       text: JSON.stringify({
-                        query: data.query,
+                        query: results.query,
                         results: formattedResults,
-                        total: data.total,
-                        timestamp: data.timestamp,
+                        total: results.total,
+                        timestamp: results.timestamp,
                         payment: {
                           amount: '0.001',
                           currency: 'USDC',
                           transaction: paymentTx || 'no-payment-required',
                           network: config.NETWORK,
-                          recipient: '0x8eABe48fb32EA35C31DAeD3d7b41388A018F86cF',
+                          recipient: config.SELLER_ADDRESS,
                           verified: !!paymentTx
                         }
                       }, null, 2),

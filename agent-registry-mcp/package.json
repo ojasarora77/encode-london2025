@@ -13,6 +13,7 @@
     "@coinbase/cdp-sdk": "^1.36.0",
     "@coinbase/x402": "^0.5.1",
     "@modelcontextprotocol/sdk": "^1.17.4",
+    "@pinecone-database/pinecone": "^6.1.2",
     "ai": "^5.0.78",
     "dotenv": "^17.2.3",
     "viem": "^2.37.3",

@@ -18,7 +18,7 @@ const env = {
   PURCHASER_PRIVATE_KEY: process.env.PURCHASER_PRIVATE_KEY,
   SELLER_ADDRESS: process.env.SELLER_ADDRESS || '0x1234567890abcdef1234567890abcdef12345678',
   NETWORK: process.env.NETWORK || 'base-sepolia',
-  MCP_SERVER_URL: 'http://localhost:43467'
+  MCP_SERVER_URL: 'http://localhost:8787'
 };
 
 console.log('🧪 Testing REAL Testnet Payments with Private Key\n');
@@ -159,14 +159,14 @@ async function testRealPaymentsWithPK() {
             method: 'tools/call',
             params: {
               name: 'search_agents',
-              arguments: {
-                query: 'I need to extract invoice data from PDF files',
-                limit: 3,
-                filters: {
-                  capabilities: ['ocr', 'pdf-processing'],
-                  minScore: 0.7
-                }
-              }
+        arguments: {
+          query: 'extract invoice data from PDF files',
+          limit: 3,
+          filters: {
+            capabilities: ['ocr', 'batch-processing'],
+            minScore: 0.4
+          }
+        }
             }
           })
         });
@@ -205,7 +205,7 @@ async function testRealPaymentsWithPK() {
     console.error('\n🔧 Troubleshooting:');
     console.error('1. Ensure MCP server is running');
     console.error('2. Check PURCHASER_PRIVATE_KEY is set in .dev.vars');
-    console.error('3. Verify Agent Registry API is running on port 3001');
+    console.error('3. Verify Agent Registry API is running on', env.MCP_SERVER_URL);
     console.error('4. Check network connectivity');
     console.error('5. Ensure private key has sufficient ETH balance');
   }
