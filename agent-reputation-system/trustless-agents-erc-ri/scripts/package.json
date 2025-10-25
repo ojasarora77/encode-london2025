@@ -1,0 +1,19 @@
+{
+  "name": "erc-8004-feedback-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for deploying, registering agents, and reading feedback using ERC-8004",
+  "type": "module",
+  "scripts": {
+    "deploy": "node deploy-contracts.js",
+    "register": "node register-agents.js",
+    "feedback": "node generate-feedback.js",
+    "read": "node read-feedback.js",
+    "setup": "node deploy-contracts.js && node register-agents.js && node generate-feedback.js"
+  },
+  "dependencies": {
+    "ethers": "^6.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}
