@@ -6,13 +6,13 @@ import {
   NavItems,
   MobileNav,
   NavbarLogo,
-  NavbarButton,
   MobileNavHeader,
   MobileNavToggle,
   MobileNavMenu,
 } from "@/components/ui/resizable-navbar";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { WalletButton } from "@/components/wallet-button";
 
 export function UniversalNavbar() {
   const pathname = usePathname();
@@ -46,7 +46,7 @@ export function UniversalNavbar() {
         <NavbarLogo />
         <NavItems items={navItems} currentPath={pathname} />
         <div className="flex items-center gap-4">
-          <NavbarButton variant="secondary">Connect Wallet</NavbarButton>
+          <WalletButton />
         </div>
       </NavBody>
 
@@ -75,13 +75,7 @@ export function UniversalNavbar() {
             </a>
           ))}
           <div className="flex w-full flex-col gap-4">
-            <NavbarButton
-              onClick={() => setIsMobileMenuOpen(false)}
-              variant="primary"
-              className="w-full"
-            >
-              Connect Wallet
-            </NavbarButton>
+            <WalletButton />
           </div>
         </MobileNavMenu>
       </MobileNav>
