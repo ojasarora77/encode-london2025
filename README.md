@@ -44,14 +44,14 @@ graph TB
     classDef a2a fill:#ffe0b2,stroke:#f57c00,stroke-width:3px
 
     %% Frontend Layer
-    subgraph Frontend["🌐 Frontend & Demo"]
+    subgraph Frontend["Frontend & Demo"]
         Website["Website<br/>(Vercel)"]
         Chatbot["Chatbot<br/>(A2A Demo)"]
         DemoAgents["Demo Agents<br/>(Cloudflare Workers)"]
     end
 
     %% Search API Layer
-    subgraph SearchAPI["🔍 Search API (A2A + x402)"]
+    subgraph SearchAPI["Search API (A2A + x402)"]
         MCPWorker["Cloudflare Worker<br/>MCP Server"]
         Pinecone["Pinecone<br/>(Vector Database)"]
         TrustScore["Trust Score<br/>Computation"]
@@ -59,7 +59,7 @@ graph TB
     end
 
     %% Indexing Pipeline
-    subgraph Indexing["📊 Indexing Pipeline"]
+    subgraph Indexing["Indexing Pipeline"]
         GraphSubgraph["The Graph<br/>Subgraph"]
         Scheduler["Scheduled<br/> Cloudflare Worker"]
         AgentExtractor["Agent Card<br/>Extractor"]
@@ -68,7 +68,7 @@ graph TB
     end
 
     %% Blockchain Layer
-    subgraph Blockchain["⛓️ Arbitrum Sepolia"]
+    subgraph Blockchain["Arbitrum Sepolia"]
         ERC8004Identity["ERC-8004<br/>Identity Registry"]
         ERC8004Reputation["ERC-8004<br/>Reputation Registry"]
         FeedbackMarket["FeedbackMarket<br/>(DAO Staking)"]
