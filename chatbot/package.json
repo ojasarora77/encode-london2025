@@ -22,6 +22,7 @@
     "ai": "^2.1.6",
     "class-variance-authority": "^0.6.1",
     "clsx": "^1.2.1",
+    "gsap": "^3.13.0",
     "nanoid": "^4.0.2",
     "next": "16.0.0",
     "next-themes": "^0.2.1",
