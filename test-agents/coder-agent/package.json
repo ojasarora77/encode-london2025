@@ -1,0 +1,13 @@
+{
+  "name": "coder-agent",
+  "version": "1.0.0",
+  "description": "A2A Coder Agent using Llama 3.3 70B via Venice AI",
+  "main": "coder-worker.js",
+  "scripts": {
+    "start": "wrangler dev --port 41242",
+    "dev": "wrangler dev --port 41242"
+  },
+  "dependencies": {
+    "wrangler": "^4.45.0"
+  }
+}
