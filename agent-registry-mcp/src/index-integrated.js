@@ -288,9 +288,20 @@ export default {
               console.log('🔍 Processing REAL x402 paid search request...');
               console.log(`   Query: "${query}"`);
               console.log(`   Limit: ${limit}`);
+              console.log(`   Filters:`, JSON.stringify(filters, null, 2));
 
               // Use the integrated indexer service directly
               const results = await indexerService.searchAgents(query, limit, filters);
+
+              console.log('📊 Search results received:');
+              console.log(`   Total results: ${results.total}`);
+              console.log(`   Results count: ${results.results?.length || 0}`);
+              if (results.results && results.results.length > 0) {
+                console.log(`   Top result score: ${results.results[0]?.score}`);
+                console.log(`   Top result: ${results.results[0]?.name}`);
+              } else {
+                console.log('   ⚠️  No results found!');
+              }
 
               // Format results for MCP
               const formattedResults = results.results.map((result) => ({
