@@ -1,6 +1,7 @@
 name = "agent-registry-mcp"
-main = "src/index.js"
+main = "src/index-x402-simple.js"
 compatibility_date = "2024-10-25"
+compatibility_flags = ["nodejs_compat"]
 
 [vars]
 AGENT_REGISTRY_URL = "http://localhost:3001"

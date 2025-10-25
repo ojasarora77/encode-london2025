@@ -10,11 +10,17 @@
     "build": "wrangler deploy --dry-run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.17.4"
+    "@coinbase/cdp-sdk": "^1.36.0",
+    "@coinbase/x402": "^0.5.1",
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "ai": "^5.0.78",
+    "dotenv": "^17.2.3",
+    "viem": "^2.37.3",
+    "x402-mcp": "^0.0.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241025.0",
-    "wrangler": "^3.78.12",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "wrangler": "^3.78.12"
   }
 }
