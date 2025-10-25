@@ -227,19 +227,24 @@ Only respond directly without using the tool for general questions, greetings, o
                           searchResults = { results: [], total: 0 };
                         }
                         
-                        // Format results nicely
+                        // Format results nicely with better styling
                         if (searchResults.total > 0 && searchResults.results?.length > 0) {
                           const formattedResults = searchResults.results.map((agent: any, idx: number) => {
-                            return `${idx + 1}. **${agent.name}** (ID: ${agent.agentId})
-   - Description: ${agent.description}
-   - Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
-   - Match Score: ${(agent.score * 100).toFixed(1)}%`
-                          }).join('\n\n')
+                            const scoreColor = agent.score > 0.7 ? '🟢' : agent.score > 0.5 ? '🟡' : '🔴'
+                            const capabilities = agent.capabilities?.join(' • ') || 'General assistance'
+                            const scoreText = agent.score > 0.7 ? 'Excellent Match' : agent.score > 0.5 ? 'Good Match' : 'Fair Match'
+                            
+                            return `## ${idx + 1}. ${agent.name}
+**ID:** \`${agent.agentId}\`
+**Description:** ${agent.description}
+**Capabilities:** ${capabilities}
+**Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})`
+                          }).join('\n\n---\n\n')
                           
                           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                             choices: [{
                               delta: { 
-                                content: `\n\n**Found ${searchResults.total} agent(s):**\n\n${formattedResults}`
+                                content: `\n\n# 🔍 Agent Search Results\n\nFound **${searchResults.total}** agent(s) matching your query:\n\n${formattedResults}\n\n---\n\n*These agents are ready to help with your specific needs!*`
                               }
                             }]
                           })}\n\n`))
@@ -247,7 +252,7 @@ Only respond directly without using the tool for general questions, greetings, o
                           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                             choices: [{
                               delta: { 
-                                content: `\n\nNo agents found matching your query.`
+                                content: `\n\n# 🔍 Agent Search Results\n\n❌ **No agents found** matching your query.\n\n*Try a different search term or check back later when more agents are available.*`
                               }
                             }]
                           })}\n\n`))

@@ -262,7 +262,54 @@ export function ChatCleanFixed({ className }: ChatProps) {
                     : 'bg-muted'
                 }`}
               >
-                {message.content}
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  {message.content.split('\n').map((line, idx) => {
+                    // Handle headers
+                    if (line.startsWith('# ')) {
+                      return <h1 key={idx} className="text-lg font-bold text-foreground">{line.slice(2)}</h1>
+                    }
+                    if (line.startsWith('## ')) {
+                      return <h2 key={idx} className="text-base font-semibold text-foreground">{line.slice(3)}</h2>
+                    }
+                    if (line.startsWith('### ')) {
+                      return <h3 key={idx} className="text-sm font-semibold text-foreground">{line.slice(4)}</h3>
+                    }
+                    
+                    // Handle bold text
+                    if (line.includes('**') && line.includes('**')) {
+                      const parts = line.split('**')
+                      return (
+                        <p key={idx} className="mb-2">
+                          {parts.map((part, partIdx) => 
+                            partIdx % 2 === 1 ? <strong key={partIdx}>{part}</strong> : part
+                          )}
+                        </p>
+                      )
+                    }
+                    
+                    // Handle code blocks
+                    if (line.startsWith('`') && line.endsWith('`')) {
+                      return <code key={idx} className="bg-muted-foreground/10 px-1 py-0.5 rounded text-xs font-mono">{line.slice(1, -1)}</code>
+                    }
+                    
+                    // Handle separators
+                    if (line.startsWith('---')) {
+                      return <hr key={idx} className="my-3 border-border" />
+                    }
+                    
+                    // Handle emojis and special formatting
+                    if (line.includes('🔍') || line.includes('❌') || line.includes('🟢') || line.includes('🟡') || line.includes('🔴')) {
+                      return <p key={idx} className="mb-2">{line}</p>
+                    }
+                    
+                    // Handle regular paragraphs
+                    if (line.trim()) {
+                      return <p key={idx} className="mb-2">{line}</p>
+                    }
+                    
+                    return <br key={idx} />
+                  })}
+                </div>
               </div>
             </div>
           ))
