@@ -1,6 +1,7 @@
 'use client'
 
 import FaultyTerminal from '@/components/FaultyTerminal'
+import ScrambledText from '@/components/ScrambledText'
 import Link from 'next/link'
 
 export default function HomePage() {
@@ -29,10 +30,25 @@ export default function HomePage() {
       </div>
 
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-white px-6">
-        <h1 className="text-6xl font-bold mb-4 text-center">AgentSearch</h1>
-        <p className="text-xl mb-8 text-center max-w-2xl">
+        <ScrambledText
+          duration={1.2}
+          speed={0.5}
+          scrambleChars=".:/"
+          className="text-6xl font-bold mb-4 text-center"
+          trigger="auto"
+          autoInterval={5000}
+        >
+          CompassDAO
+        </ScrambledText>
+        <ScrambledText
+          radius={100}
+          duration={1.2}
+          speed={0.5}
+          scrambleChars=".:/"
+          className="text-xl mb-8 text-center"
+        >
           AI agent semantic search engine with integrated x402 micropayments and ERC-8004 agent reputation protocol
-        </p>
+        </ScrambledText>
 
         <div className="flex gap-4 flex-wrap justify-center">
           <Link

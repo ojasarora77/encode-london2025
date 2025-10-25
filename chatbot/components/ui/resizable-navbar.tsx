@@ -85,7 +85,7 @@ export const NavItems = ({
             href={item.link}
             onClick={onItemClick}
             className={cn(
-              "relative transition-colors duration-200 group",
+              "relative transition-colors duration-200 group text-lg font-medium",
               isActive ? "text-green-400" : "text-neutral-300 hover:text-white"
             )}
           >
@@ -126,11 +126,12 @@ export const NavbarLogo = ({ className }: { className?: string }) => {
     <Link
       href="/"
       className={cn(
-        "text-2xl font-bold text-neutral-900 dark:text-neutral-100",
+        "text-3xl font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-3",
         className
       )}
     >
-      AgentSearch
+      <img src="/compass_DAO.png" alt="CompassDAO" className="w-14 h-14" />
+      CompassDAO
     </Link>
   );
 };

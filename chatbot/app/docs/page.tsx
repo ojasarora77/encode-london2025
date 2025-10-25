@@ -77,7 +77,7 @@ export default function DocsPage() {
           brightness={0.2}
         />
       </div>
-      <CollapsibleSidebar sections={sidebarSections} userName="AgentSearch" userRole="Documentation" />
+      <CollapsibleSidebar sections={sidebarSections} userName="CompassDAO" userRole="Documentation" />
 
       <main className="ml-[5.5rem] lg:ml-80 mr-3 transition-all duration-300 py-6 px-8 relative z-10">
         <div className="max-w-5xl mx-auto">
