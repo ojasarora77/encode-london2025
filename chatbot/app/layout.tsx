@@ -7,7 +7,14 @@ import { fontMono, fontSans } from '@/lib/fonts'
 import { cn } from '@/lib/utils'
 import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
-import { Header } from '@/components/header'
+import { UniversalNavbar } from '@/components/universal-navbar'
+import { VT323 } from 'next/font/google'
+
+const vt323 = VT323({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-vt323'
+})
 
 export const metadata: Metadata = {
   title: {
@@ -15,10 +22,6 @@ export const metadata: Metadata = {
     template: `%s - Next.js AI Chatbot`
   },
   description: 'An AI-powered chatbot template built with Next.js and Vercel.',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' }
-  ],
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon-16x16.png',
@@ -36,17 +39,18 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <head />
       <body
         className={cn(
-          'font-sans antialiased',
+          'antialiased',
           fontSans.variable,
-          fontMono.variable
+          fontMono.variable,
+          vt323.variable
         )}
+        style={{ fontFamily: 'var(--font-vt323), monospace' }}
       >
         <Toaster />
         <Providers attribute="class" defaultTheme="system" enableSystem>
           <div className="flex min-h-screen flex-col">
-            {/* @ts-ignore */}
-            <Header />
-            <main className="flex flex-1 flex-col bg-muted/50">{children}</main>
+            <UniversalNavbar />
+            <main className="flex flex-1 flex-col">{children}</main>
           </div>
           <TailwindIndicator />
         </Providers>
