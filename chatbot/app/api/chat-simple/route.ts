@@ -106,9 +106,10 @@ async function callMCPServer(toolName: string, args: any, signature?: string) {
 export async function POST(req: Request) {
   const json = await req.json()
   const { messages, x402Signature } = json
-
+  
   console.log('📨 Chat API received request')
   console.log('   Messages count:', messages?.length)
+  console.log('   Has x402Signature:', !!x402Signature)
 
   const apiKey = process.env.VENICE_API_KEY
   
