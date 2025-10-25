@@ -297,6 +297,7 @@ export function ChatCleanFixed({ className }: ChatProps) {
                       return <hr key={idx} className="my-3 border-border" />
                     }
                     
+                    
                     // Handle emojis and special formatting
                     if (line.includes('🔍') || line.includes('❌') || line.includes('🟢') || line.includes('🟡') || line.includes('🔴')) {
                       return <p key={idx} className="mb-2">{line}</p>

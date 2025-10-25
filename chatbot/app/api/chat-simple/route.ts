@@ -205,7 +205,7 @@ Only respond directly without using the tool for general questions, greetings, o
                         controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                           choices: [{
                             delta: { 
-                              content: `\n\n[PAYMENT_REQUIRED:${JSON.stringify(mcpResponse.payment)}]`
+                              content: `[PAYMENT_REQUIRED:${JSON.stringify(mcpResponse.payment)}]`
                             }
                           }]
                         })}\n\n`))
