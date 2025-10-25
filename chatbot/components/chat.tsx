@@ -154,11 +154,62 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       
       if (response.ok) {
         toast.success('Payment processed!', { id: 'payment-process' })
-        console.log('✅ Payment processed, reloading chat')
-        // Clear the pending message
+        console.log('✅ Payment processed successfully')
+        
+        // Clear the pending message and dialog
         setPendingMessageContent(null)
-        // Reload the chat to show the new response
-        reload()
+        setPaymentDialog(false)
+        
+        // Read the streaming response
+        const reader = response.body?.getReader()
+        const decoder = new TextDecoder()
+        let accumulatedText = ''
+        
+        if (reader) {
+          console.log('📖 Reading streaming response...')
+          
+          // Add user message first
+          const userMessage = { role: 'user' as const, content: pendingMessageContent, id: `user-${Date.now()}` }
+          
+          try {
+            while (true) {
+              const { done, value } = await reader.read()
+              if (done) {
+                console.log('✅ Stream complete')
+                break
+              }
+              
+              const chunk = decoder.decode(value)
+              const lines = chunk.split('\n')
+              
+              for (const line of lines) {
+                if (line.startsWith('data: ') && !line.includes('[DONE]')) {
+                  try {
+                    const data = JSON.parse(line.slice(6))
+                    const content = data.choices?.[0]?.delta?.content
+                    if (content) {
+                      accumulatedText += content
+                    }
+                  } catch (e) {
+                    // Ignore parse errors
+                  }
+                }
+              }
+            }
+            
+            console.log('📝 Final response length:', accumulatedText.length)
+            
+            // Force reload to get the complete conversation
+            reload()
+            
+          } catch (streamError) {
+            console.error('❌ Error reading stream:', streamError)
+            reload()
+          }
+        } else {
+          // No stream, just reload
+          reload()
+        }
       } else if (response.status === 402) {
         toast.error('Payment failed. Please try again.', { id: 'payment-process' })
         console.error('❌ Still getting 402 after payment')
