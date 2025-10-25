@@ -55,6 +55,7 @@ graph TB
         MCPWorker["Cloudflare Worker<br/>MCP Server"]
         Pinecone["Pinecone<br/>(Vector Database)"]
         TrustScore["Trust Score<br/>Computation"]
+        VeniceAI["Venice AI<br/>(Query Vectorization)"]
     end
 
     %% Indexing Pipeline
@@ -64,7 +65,6 @@ graph TB
         AgentExtractor["Agent Card<br/>Extractor"]
         EmbeddingService["Venice AI<br/>(Embeddings)"]
         VectorIndexer["Pinecone<br/>Indexer"]
-        VeniceAI["Venice AI<br/>(Query Vectorization)"]
     end
 
     %% Blockchain Layer
@@ -80,9 +80,9 @@ graph TB
     DemoAgents --> MCPWorker
 
     MCPWorker --> VeniceAI
-    MCPWorker --> Pinecone
     MCPWorker --> TrustScore
     MCPWorker --> ERC8004Reputation
+    VeniceAI --> Pinecone
 
     GraphSubgraph --> Scheduler
     Scheduler --> AgentExtractor
@@ -93,6 +93,7 @@ graph TB
     ERC8004Identity --> GraphSubgraph
     ERC8004Reputation --> TrustScore
     FeedbackMarket --> ERC8004Reputation
+
 
     %% Apply styles
     class Website,Chatbot,DemoAgents,MCPWorker,VeniceAI,Pinecone,TrustScore,AgentExtractor,EmbeddingService,VectorIndexer implemented
