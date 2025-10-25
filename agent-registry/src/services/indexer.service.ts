@@ -57,6 +57,7 @@ export class AgentIndexerService {
       embedding: embeddings[idx],
       metadata: {
         name: agent.name,
+        address: idx,
         description: agent.description,
         url: agent.url,
         version: agent.version || '1.0.0',
