@@ -21,6 +21,9 @@ declare -A AGENTS=(
     ["content-generator-agent"]="41246"
     ["meeting-analyzer-agent"]="41247"
     ["email-classifier-agent"]="41248"
+    ["quality-assurance-agent"]="41249"
+    ["recommendation-engine-agent"]="41250"
+    ["fraud-detector-agent"]="41251"
 )
 
 # Function to start a single agent
