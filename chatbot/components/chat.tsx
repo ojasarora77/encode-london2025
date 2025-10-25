@@ -299,15 +299,15 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             <DialogTitle>Payment Required</DialogTitle>
             <DialogDescription>
               This search requires a micropayment to execute. Payment will be signed automatically.
-              {address && (
-                <div className="mt-2 text-sm">
-                  <strong>Wallet:</strong>{' '}
-                  <code className="font-mono text-xs">
-                    {address.slice(0, 6)}...{address.slice(-4)}
-                  </code>
-                </div>
-              )}
             </DialogDescription>
+            {address && (
+              <div className="mt-2 text-sm">
+                <strong>Wallet:</strong>{' '}
+                <code className="font-mono text-xs">
+                  {address.slice(0, 6)}...{address.slice(-4)}
+                </code>
+              </div>
+            )}
           </DialogHeader>
           {pendingPayment && (
             <div className="space-y-2 rounded-lg bg-muted p-4">
