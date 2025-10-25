@@ -30,8 +30,57 @@ const tools = [
         required: ['query']
       }
     }
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'execute_agent_task',
+      description: 'Execute a task on a specific AI agent using A2A protocol. Use this after finding an agent with search_agents.',
+      parameters: {
+        type: 'object',
+        properties: {
+          agent_url: {
+            type: 'string',
+            description: 'The URL of the agent to execute the task on (from search results)'
+          },
+          task_description: {
+            type: 'string',
+            description: 'The task description or instruction for the agent'
+          }
+        },
+        required: ['agent_url', 'task_description']
+      }
+    }
   }
 ]
+
+// A2A execution function
+async function executeAgentTask(agentUrl: string, taskDescription: string) {
+  try {
+    const response = await fetch(`${agentUrl}/tasks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        task: {
+          input: {
+            text: taskDescription
+          }
+        }
+      })
+    });
+    
+    if (!response.ok) {
+      return { error: `Agent request failed: ${response.status}` };
+    }
+    
+    const result = await response.json();
+    return { data: result };
+  } catch (error) {
+    return { error: `Error calling agent: ${error}` };
+  }
+}
 
 // MCP call with payment handling
 async function callMCPServer(toolName: string, args: any, signature?: string) {
@@ -131,11 +180,18 @@ export async function POST(req: Request) {
   // Add system prompt to guide tool usage
   const systemPrompt = {
     role: 'system',
-    content: `You are a helpful AI assistant with access to an agent registry. When users ask for help with tasks (like booking flights, translating documents, parsing PDFs, analyzing data, etc.), you should use the search_agents tool to find specialized AI agents that can help them. 
+    content: `You are a helpful AI assistant with access to an agent registry and the ability to delegate tasks to specialized AI agents.
 
-After receiving agent results, present them in a friendly, organized way and explain how each agent can help with the user's specific request.
+When users ask for help with tasks:
+1. Use the search_agents tool to find specialized agents that can help
+2. Use the execute_agent_task tool to delegate the task to the appropriate agent
+3. Present the agent's results to the user in a clear, organized way
 
-Only respond directly without using the tool for general questions, greetings, or when the user explicitly asks not to search for agents.`
+Available tools:
+- search_agents: Find specialized AI agents for specific tasks
+- execute_agent_task: Execute tasks on agents you've found
+
+Only respond directly without using tools for general questions, greetings, or when the user explicitly asks not to use agents.`
   }
 
   // Ensure system prompt is first
@@ -260,6 +316,56 @@ Only respond directly without using the tool for general questions, greetings, o
                       }
                     } catch (error) {
                       console.error('❌ Error handling tool call in stream:', error)
+                    }
+                  } else if (toolCall.function.name === 'execute_agent_task') {
+                    try {
+                      const args = JSON.parse(toolCall.function.arguments || '{}')
+                      console.log('🤖 Executing A2A task on agent...')
+                      console.log('   Agent URL:', args.agent_url)
+                      console.log('   Task:', args.task_description)
+                      
+                      const agentResponse = await executeAgentTask(args.agent_url, args.task_description)
+                      
+                      if (agentResponse.error) {
+                        console.error('❌ Agent execution failed:', agentResponse.error)
+                        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                          choices: [{
+                            delta: { 
+                              content: `\n\n**Agent Error:** ${agentResponse.error}\n\n`
+                            }
+                          }]
+                        })}\n\n`))
+                      } else if (agentResponse.data) {
+                        console.log('✅ Agent task completed')
+                        
+                        // Format agent response for display
+                        const taskResult = agentResponse.data
+                        let formattedResult = `\n\n## Agent Task Result\n\n`
+                        formattedResult += `**Status:** ${taskResult.status}\n`
+                        formattedResult += `**Task ID:** \`${taskResult.id}\`\n\n`
+                        
+                        if (taskResult.result) {
+                          formattedResult += `**Result:**\n`
+                          if (taskResult.result.files) {
+                            formattedResult += `\nGenerated ${taskResult.result.files.length} file(s):\n\n`
+                            taskResult.result.files.forEach((file: any) => {
+                              formattedResult += `### ${file.filename}\n\`\`\`\n${file.content}\n\`\`\`\n\n`
+                            })
+                          } else if (taskResult.result.text) {
+                            formattedResult += `\n${taskResult.result.text}\n\n`
+                          } else {
+                            formattedResult += `\n${JSON.stringify(taskResult.result, null, 2)}\n\n`
+                          }
+                        }
+                        
+                        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                          choices: [{
+                            delta: { content: formattedResult }
+                          }]
+                        })}\n\n`))
+                      }
+                    } catch (error) {
+                      console.error('❌ Error handling A2A tool call:', error)
                     }
                   }
                 }

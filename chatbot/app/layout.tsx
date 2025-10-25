@@ -48,9 +48,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <Toaster />
         <Providers attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex min-h-screen flex-col">
+          <div className="flex h-screen flex-col">
             <UniversalNavbar />
-            <main className="flex flex-1 flex-col">{children}</main>
+            <main className="flex flex-1 flex-col min-h-0 pt-24">{children}</main>
           </div>
           <TailwindIndicator />
         </Providers>
