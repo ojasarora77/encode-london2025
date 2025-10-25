@@ -143,11 +143,13 @@ export function createFeedbackAuth(agentId, clientAddress, indexLimit, expiry, c
  * Hash feedback authorization for EIP-191 signing
  */
 export function hashFeedbackAuth(auth) {
+  // Step 1: Encode the struct using abi.encode (not abi.encodePacked)
   const structHash = ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode(
     ['uint256', 'address', 'uint64', 'uint256', 'uint256', 'address', 'address'],
     [auth.agentId, auth.clientAddress, auth.indexLimit, auth.expiry, auth.chainId, auth.identityRegistry, auth.signerAddress]
   ));
   
+  // Step 2: Create EIP-191 message hash using abi.encodePacked
   return ethers.keccak256(ethers.solidityPacked(
     ['string', 'bytes32'],
     ['\x19Ethereum Signed Message:\n32', structHash]
@@ -160,18 +162,25 @@ export function hashFeedbackAuth(auth) {
 export function signFeedbackAuth(auth, privateKey) {
   const messageHash = hashFeedbackAuth(auth);
   const wallet = new ethers.Wallet(privateKey);
-  const signature = wallet.signMessageSync(ethers.getBytes(messageHash));
   
-  // Pack auth struct + signature according to ERC-8004 spec
-  const authData = ethers.AbiCoder.defaultAbiCoder().encode(
-    [
-      'tuple(uint256 agentId, address clientAddress, uint64 indexLimit, uint256 expiry, uint256 chainId, address identityRegistry, address signerAddress)',
-      'bytes'
-    ],
-    [auth, signature]
+  // Sign the message hash directly (not using signMessageSync which expects a string)
+  const signature = wallet.signingKey.sign(messageHash);
+  
+  // Format signature as r+s+v (65 bytes)
+  const signatureBytes = ethers.concat([
+    signature.r,
+    signature.s,
+    ethers.zeroPadValue(ethers.toBeHex(signature.v), 1)
+  ]);
+  
+  // Encode the struct using abi.encode (not abi.encodePacked)
+  const structData = ethers.AbiCoder.defaultAbiCoder().encode(
+    ['uint256', 'address', 'uint64', 'uint256', 'uint256', 'address', 'address'],
+    [auth.agentId, auth.clientAddress, auth.indexLimit, auth.expiry, auth.chainId, auth.identityRegistry, auth.signerAddress]
   );
   
-  return authData;
+  // Concatenate struct data + signature (65 bytes: r=32, s=32, v=1)
+  return ethers.concat([structData, signatureBytes]);
 }
 
 /**

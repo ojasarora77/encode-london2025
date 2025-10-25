@@ -46,6 +46,11 @@ async function generateFeedback() {
         feedback: []
       };
       
+      // Get the correct agent owner based on agent ID
+      // Agents 1,3,5 were registered by account 0; agents 2,4 by account 1
+      const agentOwnerIndex = (parseInt(agentInfo.agentId) - 1) % 2; // 0 for odd IDs, 1 for even IDs
+      const { signer: agentOwnerSigner } = getProviderAndSigner(agentOwnerIndex);
+      
       // Generate 3-5 feedback entries per agent
       const feedbackCount = Math.floor(Math.random() * 3) + 3; // 3-5 feedback
       
@@ -74,16 +79,16 @@ async function generateFeedback() {
           expiry,
           ANVIL_CHAIN_ID,
           deployments.identityRegistry,
-          signer.address
+          agentOwnerSigner.address // Use the correct agent owner's address
         );
         
-        // Sign the authorization
-        const feedbackAuth = signFeedbackAuth(auth, signer.privateKey);
+        // Sign the authorization with the correct agent owner's private key
+        const feedbackAuth = signFeedbackAuth(auth, agentOwnerSigner.privateKey);
 
         console.log(`   📝 Feedback Auth: ${feedbackAuth}`);
         
         console.log(`   📝 Feedback ${i + 1}: Score ${score}, Tags: ${tag1}, ${tag2}`);
-        console.log(`   👤 Client: ${clientSigner.address}, Agent Owner: ${signer.address}`);
+        console.log(`   👤 Client: ${clientSigner.address}, Agent Owner: ${agentOwnerSigner.address}`);
         
         try {
           // Give feedback using the client signer
