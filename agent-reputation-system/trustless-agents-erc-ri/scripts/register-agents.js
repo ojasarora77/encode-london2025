@@ -9,17 +9,26 @@ import {
   getContracts,
   formatAddress
 } from './utils.js';
+import { 
+  getCurrentNetworkConfig, 
+  validateEnvironment 
+} from './config.js';
 import fs from 'fs';
 import path from 'path';
 
 async function registerAgents() {
-  console.log('🤖 Starting agent registration...\n');
+  // Validate environment and get network config
+  validateEnvironment();
+  const config = getCurrentNetworkConfig();
+  
+  console.log(`🤖 Starting agent registration on ${config.name}...\n`);
   
   // Load deployment addresses
   const deployments = loadDeployments();
   console.log(`📋 Using contracts:`);
   console.log(`   IdentityRegistry: ${formatAddress(deployments.identityRegistry)}`);
-  console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}\n`);
+  console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}`);
+  console.log(`   Network: ${deployments.network || config.name}\n`);
   
   // Get provider and signers (use different signers for each registration)
   const { provider } = getProviderAndSigner(0);
