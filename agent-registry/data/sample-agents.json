@@ -1,0 +1,371 @@
+[
+  {
+    "id": "invoice-extract-001",
+    "name": "Invoice Extraction Agent",
+    "description": "Extracts relevant fields from uploaded invoices and provides validation checks",
+    "url": "https://agents.example.com/invoice-extraction",
+    "version": "2.3.0",
+    "provider": "AI Workflow Inc.",
+    "capabilities": ["streaming", "batch-processing", "pushNotifications"],
+    "defaultInputModes": ["application/pdf", "image/png"],
+    "defaultOutputModes": ["application/json", "text/csv"],
+    "skills": [
+      {
+        "id": "extract_fields",
+        "name": "Invoice Field Extraction",
+        "description": "Pulls line items, total, vendor, date from invoices",
+        "tags": ["invoice", "document", "ocr", "extraction"]
+      },
+      {
+        "id": "validate_invoice",
+        "name": "Invoice Validation",
+        "description": "Checks invoice for completeness and fraud patterns",
+        "tags": ["invoice", "validation", "compliance"]
+      }
+    ]
+  },
+  {
+    "id": "doc-parser-202",
+    "name": "Document Parser Pro",
+    "description": "General purpose document processing and data extraction from various formats",
+    "url": "https://agents.example.com/doc-parser",
+    "version": "1.5.0",
+    "provider": "DocAI Corp",
+    "capabilities": ["streaming", "ocr"],
+    "defaultInputModes": ["application/pdf", "application/docx", "image/jpeg"],
+    "defaultOutputModes": ["application/json", "text/plain"],
+    "skills": [
+      {
+        "id": "parse_document",
+        "name": "Document Parsing",
+        "description": "Extracts structured data from unstructured documents",
+        "tags": ["document", "parsing", "extraction"]
+      }
+    ]
+  },
+  {
+    "id": "translate-multi-001",
+    "name": "Multi-Language Translator",
+    "description": "Translates text between 50+ languages with context awareness and cultural adaptation",
+    "url": "https://agents.example.com/translator",
+    "version": "3.1.0",
+    "provider": "LinguaFlow",
+    "capabilities": ["streaming", "real-time"],
+    "defaultInputModes": ["text/plain", "application/json"],
+    "defaultOutputModes": ["text/plain", "application/json"],
+    "skills": [
+      {
+        "id": "translate_text",
+        "name": "Text Translation",
+        "description": "Translates text while preserving context and cultural nuances",
+        "tags": ["translation", "nlp", "multilingual"]
+      },
+      {
+        "id": "detect_language",
+        "name": "Language Detection",
+        "description": "Automatically detects source language for translation",
+        "tags": ["language", "detection", "nlp"]
+      }
+    ]
+  },
+  {
+    "id": "image-analyzer-301",
+    "name": "Smart Image Analyzer",
+    "description": "Advanced image analysis with object detection, OCR, and scene understanding",
+    "url": "https://agents.example.com/image-analyzer",
+    "version": "4.2.1",
+    "provider": "VisionTech Solutions",
+    "capabilities": ["batch-processing", "ocr"],
+    "defaultInputModes": ["image/jpeg", "image/png", "image/gif"],
+    "defaultOutputModes": ["application/json", "text/plain"],
+    "skills": [
+      {
+        "id": "object_detection",
+        "name": "Object Detection",
+        "description": "Identifies and locates objects within images",
+        "tags": ["computer-vision", "object-detection", "ai"]
+      },
+      {
+        "id": "text_extraction",
+        "name": "Image Text Extraction",
+        "description": "Extracts text from images using advanced OCR",
+        "tags": ["ocr", "text-extraction", "image-processing"]
+      }
+    ]
+  },
+  {
+    "id": "code-reviewer-401",
+    "name": "AI Code Reviewer",
+    "description": "Automated code review with security analysis, performance optimization, and best practices",
+    "url": "https://agents.example.com/code-reviewer",
+    "version": "1.8.0",
+    "provider": "DevTools AI",
+    "capabilities": ["streaming", "batch-processing"],
+    "defaultInputModes": ["text/plain", "application/json"],
+    "defaultOutputModes": ["application/json", "text/markdown"],
+    "skills": [
+      {
+        "id": "security_analysis",
+        "name": "Security Analysis",
+        "description": "Identifies security vulnerabilities and suggests fixes",
+        "tags": ["security", "code-analysis", "vulnerability"]
+      },
+      {
+        "id": "performance_review",
+        "name": "Performance Review",
+        "description": "Analyzes code for performance bottlenecks and optimization opportunities",
+        "tags": ["performance", "optimization", "code-analysis"]
+      }
+    ]
+  },
+  {
+    "id": "customer-support-501",
+    "name": "Intelligent Customer Support",
+    "description": "AI-powered customer service agent with sentiment analysis and ticket routing",
+    "url": "https://agents.example.com/customer-support",
+    "version": "2.5.0",
+    "provider": "SupportAI",
+    "capabilities": ["streaming", "real-time", "pushNotifications"],
+    "defaultInputModes": ["text/plain", "application/json"],
+    "defaultOutputModes": ["text/plain", "application/json"],
+    "skills": [
+      {
+        "id": "sentiment_analysis",
+        "name": "Sentiment Analysis",
+        "description": "Analyzes customer sentiment and emotional state",
+        "tags": ["sentiment", "nlp", "customer-service"]
+      },
+      {
+        "id": "ticket_routing",
+        "name": "Ticket Routing",
+        "description": "Automatically routes tickets to appropriate departments",
+        "tags": ["routing", "classification", "automation"]
+      }
+    ]
+  },
+  {
+    "id": "financial-analyzer-601",
+    "name": "Financial Data Analyzer",
+    "description": "Analyzes financial data, generates reports, and provides investment insights",
+    "url": "https://agents.example.com/financial-analyzer",
+    "version": "3.0.2",
+    "provider": "FinTech AI",
+    "capabilities": ["batch-processing", "streaming"],
+    "defaultInputModes": ["application/json", "text/csv", "application/pdf"],
+    "defaultOutputModes": ["application/json", "text/markdown", "application/pdf"],
+    "skills": [
+      {
+        "id": "trend_analysis",
+        "name": "Trend Analysis",
+        "description": "Identifies financial trends and patterns in data",
+        "tags": ["finance", "trends", "analysis"]
+      },
+      {
+        "id": "risk_assessment",
+        "name": "Risk Assessment",
+        "description": "Evaluates financial risk and provides recommendations",
+        "tags": ["risk", "finance", "assessment"]
+      }
+    ]
+  },
+  {
+    "id": "email-classifier-701",
+    "name": "Email Classification Agent",
+    "description": "Automatically classifies emails by category, priority, and sentiment",
+    "url": "https://agents.example.com/email-classifier",
+    "version": "1.3.0",
+    "provider": "EmailAI",
+    "capabilities": ["batch-processing", "streaming"],
+    "defaultInputModes": ["text/plain", "application/json"],
+    "defaultOutputModes": ["application/json", "text/plain"],
+    "skills": [
+      {
+        "id": "email_classification",
+        "name": "Email Classification",
+        "description": "Categorizes emails by type and importance",
+        "tags": ["email", "classification", "nlp"]
+      },
+      {
+        "id": "spam_detection",
+        "name": "Spam Detection",
+        "description": "Identifies and filters spam emails",
+        "tags": ["spam", "security", "filtering"]
+      }
+    ]
+  },
+  {
+    "id": "data-extractor-801",
+    "name": "Web Data Extractor",
+    "description": "Extracts structured data from websites and web pages with intelligent parsing",
+    "url": "https://agents.example.com/data-extractor",
+    "version": "2.1.0",
+    "provider": "WebScrape AI",
+    "capabilities": ["streaming", "batch-processing"],
+    "defaultInputModes": ["text/html", "application/json"],
+    "defaultOutputModes": ["application/json", "text/csv"],
+    "skills": [
+      {
+        "id": "web_scraping",
+        "name": "Web Scraping",
+        "description": "Extracts data from web pages and websites",
+        "tags": ["web-scraping", "data-extraction", "parsing"]
+      },
+      {
+        "id": "data_cleaning",
+        "name": "Data Cleaning",
+        "description": "Cleans and normalizes extracted data",
+        "tags": ["data-cleaning", "normalization", "processing"]
+      }
+    ]
+  },
+  {
+    "id": "voice-transcriber-901",
+    "name": "Voice Transcription Agent",
+    "description": "Converts speech to text with high accuracy and speaker identification",
+    "url": "https://agents.example.com/voice-transcriber",
+    "version": "1.7.0",
+    "provider": "AudioAI",
+    "capabilities": ["streaming", "real-time"],
+    "defaultInputModes": ["audio/mpeg", "audio/wav", "audio/mp3"],
+    "defaultOutputModes": ["text/plain", "application/json"],
+    "skills": [
+      {
+        "id": "speech_to_text",
+        "name": "Speech to Text",
+        "description": "Converts audio to text with high accuracy",
+        "tags": ["speech", "transcription", "audio"]
+      },
+      {
+        "id": "speaker_identification",
+        "name": "Speaker Identification",
+        "description": "Identifies different speakers in audio",
+        "tags": ["speaker", "identification", "audio"]
+      }
+    ]
+  },
+  {
+    "id": "content-generator-1001",
+    "name": "AI Content Generator",
+    "description": "Generates high-quality content for blogs, social media, and marketing materials",
+    "url": "https://agents.example.com/content-generator",
+    "version": "4.0.1",
+    "provider": "ContentAI",
+    "capabilities": ["streaming", "batch-processing"],
+    "defaultInputModes": ["text/plain", "application/json"],
+    "defaultOutputModes": ["text/plain", "text/markdown", "application/json"],
+    "skills": [
+      {
+        "id": "blog_writing",
+        "name": "Blog Writing",
+        "description": "Creates engaging blog posts and articles",
+        "tags": ["writing", "content", "blog"]
+      },
+      {
+        "id": "social_media",
+        "name": "Social Media Content",
+        "description": "Generates social media posts and captions",
+        "tags": ["social-media", "content", "marketing"]
+      }
+    ]
+  },
+  {
+    "id": "meeting-analyzer-1101",
+    "name": "Meeting Analysis Agent",
+    "description": "Analyzes meeting transcripts, extracts action items, and generates summaries",
+    "url": "https://agents.example.com/meeting-analyzer",
+    "version": "2.2.0",
+    "provider": "MeetingAI",
+    "capabilities": ["streaming", "batch-processing"],
+    "defaultInputModes": ["text/plain", "application/json"],
+    "defaultOutputModes": ["application/json", "text/markdown"],
+    "skills": [
+      {
+        "id": "action_items",
+        "name": "Action Item Extraction",
+        "description": "Identifies and extracts action items from meetings",
+        "tags": ["meeting", "action-items", "extraction"]
+      },
+      {
+        "id": "meeting_summary",
+        "name": "Meeting Summary",
+        "description": "Generates concise meeting summaries",
+        "tags": ["meeting", "summary", "nlp"]
+      }
+    ]
+  },
+  {
+    "id": "quality-assurance-1201",
+    "name": "Quality Assurance Agent",
+    "description": "Automated testing and quality assurance for software applications",
+    "url": "https://agents.example.com/qa-agent",
+    "version": "1.9.0",
+    "provider": "TestAI",
+    "capabilities": ["batch-processing", "streaming"],
+    "defaultInputModes": ["application/json", "text/plain"],
+    "defaultOutputModes": ["application/json", "text/markdown"],
+    "skills": [
+      {
+        "id": "test_generation",
+        "name": "Test Generation",
+        "description": "Automatically generates test cases for applications",
+        "tags": ["testing", "automation", "quality"]
+      },
+      {
+        "id": "bug_detection",
+        "name": "Bug Detection",
+        "description": "Identifies potential bugs and issues in code",
+        "tags": ["bugs", "detection", "quality"]
+      }
+    ]
+  },
+  {
+    "id": "recommendation-engine-1301",
+    "name": "Recommendation Engine",
+    "description": "Personalized recommendation system for products, content, and services",
+    "url": "https://agents.example.com/recommendation-engine",
+    "version": "3.5.0",
+    "provider": "RecommendAI",
+    "capabilities": ["streaming", "real-time"],
+    "defaultInputModes": ["application/json", "text/plain"],
+    "defaultOutputModes": ["application/json", "text/plain"],
+    "skills": [
+      {
+        "id": "collaborative_filtering",
+        "name": "Collaborative Filtering",
+        "description": "Provides recommendations based on user behavior patterns",
+        "tags": ["recommendations", "collaborative", "ml"]
+      },
+      {
+        "id": "content_based",
+        "name": "Content-Based Filtering",
+        "description": "Recommends based on item characteristics and user preferences",
+        "tags": ["recommendations", "content", "ml"]
+      }
+    ]
+  },
+  {
+    "id": "fraud-detector-1401",
+    "name": "Fraud Detection Agent",
+    "description": "Advanced fraud detection using machine learning and pattern recognition",
+    "url": "https://agents.example.com/fraud-detector",
+    "version": "2.8.0",
+    "provider": "SecurityAI",
+    "capabilities": ["streaming", "real-time", "pushNotifications"],
+    "defaultInputModes": ["application/json", "text/plain"],
+    "defaultOutputModes": ["application/json", "text/plain"],
+    "skills": [
+      {
+        "id": "anomaly_detection",
+        "name": "Anomaly Detection",
+        "description": "Identifies unusual patterns that may indicate fraud",
+        "tags": ["fraud", "anomaly", "security"]
+      },
+      {
+        "id": "risk_scoring",
+        "name": "Risk Scoring",
+        "description": "Calculates risk scores for transactions and activities",
+        "tags": ["risk", "scoring", "fraud"]
+      }
+    ]
+  }
+]

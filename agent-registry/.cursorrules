@@ -1,0 +1,29 @@
+# Cursor Rules for Agent Registry
+
+## NO MOCKING POLICY
+- NEVER create mock services, fake data, or placeholder implementations
+- ALWAYS use real APIs, real services, and real data
+- If an API is not working, fix the integration properly
+- If a service is unavailable, find an alternative real service
+- NO mock, fake, dummy, placeholder, or test implementations
+
+## Code Quality Standards
+- Use proper TypeScript types and interfaces
+- Implement proper error handling
+- Use real API endpoints and authentication
+- Follow production-ready patterns
+- Write comprehensive documentation
+
+## API Integration
+- Always use real API keys and endpoints
+- Implement proper authentication
+- Handle API errors gracefully
+- Use official SDKs when available
+- Test with real data and real services
+
+## Development Approach
+- Fix integration issues rather than working around them
+- Use real services for development and testing
+- Implement proper logging and monitoring
+- Follow security best practices
+- Write production-ready code
