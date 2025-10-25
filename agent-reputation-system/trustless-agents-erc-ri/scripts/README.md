@@ -1,182 +1,261 @@
-# ERC-8004 Feedback Scripts
+# ERC-8004 Agent Reputation System - Scripts
 
-This directory contains JavaScript scripts for deploying, registering agents, generating feedback, and reading feedback summaries using the ERC-8004 reference implementation.
+This directory contains deployment and management scripts for the ERC-8004 Agent Reputation System, supporting both local Anvil development and Arbitrum Sepolia testnet deployment.
 
-## Prerequisites
+## 🚀 Quick Start
 
-1. **Foundry installed** - for contract compilation
-2. **Node.js 18+** - for running the scripts
-3. **Anvil running** - local Ethereum node for testing
-
-## Setup
-
-1. **Install dependencies:**
-   ```bash
-   cd scripts
-   npm install
-   ```
-
-2. **Start Anvil:**
-   ```bash
-   anvil
-   ```
-   Keep this running in a separate terminal.
-
-3. **Compile contracts:**
-   ```bash
-   cd ..
-   forge build
-   cd scripts
-   ```
-
-## Scripts Overview
-
-### 1. Deploy Contracts (`deploy-contracts.js`)
-Deploys the IdentityRegistry and ReputationRegistry contracts to Anvil.
+### Local Development (Anvil)
 
 ```bash
-npm run deploy
-# or
-node deploy-contracts.js
+# Start Anvil in another terminal
+anvil
+
+# Deploy contracts
+node scripts/deploy-contracts.js
+
+# Register agents
+node scripts/register-agents.js
+
+# Generate feedback
+node scripts/generate-feedback.js
+
+# Calculate trust scores
+node scripts/calculate-trust-score.js
 ```
 
-**Output:**
-- Deploys contracts to Anvil
-- Saves contract addresses to `deployments.json`
-- Displays deployment summary
+### Arbitrum Sepolia Deployment
 
-### 2. Register Agents (`register-agents.js`)
-Registers all 15 agents from `sample-agents.json` to the IdentityRegistry.
+**Option 1: Using .env file (Recommended)**
+```bash
+# Create .env file
+cp env.example .env
+# Edit .env file with your values
+NETWORK=arbitrum-sepolia
+PRIVATE_KEY=0x1234...          # For deployment/registration
+FEEDBACK_PRIVATE_KEY=0x5678...  # For giving feedback (different wallet)
+ARBISCAN_API_KEY=your_key
+
+# Deploy contracts
+node scripts/deploy-contracts.js
+```
+
+**Option 2: Using export commands**
+```bash
+# Set environment variables
+export NETWORK=arbitrum-sepolia
+export PRIVATE_KEY=0x1234...          # For deployment/registration
+export FEEDBACK_PRIVATE_KEY=0x5678...  # For giving feedback (different wallet)
+export ARBISCAN_API_KEY=your_key       # Optional for verification
+
+# Deploy contracts
+node scripts/deploy-contracts.js
+
+# Register agents
+node scripts/register-agents.js
+
+# Generate feedback
+node scripts/generate-feedback.js
+
+# Calculate trust scores
+node scripts/calculate-trust-score.js
+```
+
+## 📋 Prerequisites
+
+### For Local Development
+- [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
+- Anvil running on `http://127.0.0.1:8545`
+
+### For Arbitrum Sepolia
+- Private key with testnet ETH
+- Get testnet ETH from [Arbitrum Bridge](https://bridge.arbitrum.io/)
+- Optional: Arbiscan API key for contract verification
+
+## 🔧 Environment Variables
+
+The system supports both `.env` files and shell environment variables. The `.env` file approach is recommended for easier management.
+
+### Using .env File (Recommended)
 
 ```bash
-npm run register
-# or
-node register-agents.js
+# Copy the example file
+cp env.example .env
+
+# Edit .env with your values
+nano .env
 ```
 
-**Prerequisites:** Run `deploy-contracts.js` first
-
-**Output:**
-- Registers agents with metadata
-- Saves agent ID mappings to `agent-mappings.json`
-- Displays registration summary
-
-### 3. Generate Feedback (`generate-feedback.js`)
-Creates feedback from multiple test clients with proper EIP-191 signatures.
+### Using Shell Environment Variables
 
 ```bash
-npm run feedback
-# or
-node generate-feedback.js
+export NETWORK=arbitrum-sepolia
+export PRIVATE_KEY=0x1234...
 ```
 
-**Prerequisites:** Run `deploy-contracts.js` and `register-agents.js` first
+### Required Variables
 
-**Output:**
-- Generates 3-5 feedback entries per agent
-- Uses varied scores (60-100) and tags
-- Saves feedback metadata to `feedback-data.json`
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NETWORK` | Network to deploy to | `local` |
+| `PRIVATE_KEY` | Private key for deployment/registration (required for testnets) | - |
+| `FEEDBACK_PRIVATE_KEY` | Private key for giving feedback (prevents self-feedback errors) | Falls back to `PRIVATE_KEY` |
 
-### 4. Read Feedback (`read-feedback.js`)
-Reads and displays feedback summaries using `getSummary` with various filters.
+### Optional Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `ARBITRUM_SEPOLIA_RPC_URL` | Custom RPC URL | `https://sepolia-rollup.arbitrum.io/rpc` |
+| `ARBISCAN_API_KEY` | API key for contract verification | - |
+
+## 📜 Available Scripts
+
+### Core Scripts
+
+- **`deploy-contracts.js`** - Deploy IdentityRegistry and ReputationRegistry contracts
+- **`register-agents.js`** - Register sample agents in the system
+- **`generate-feedback.js`** - Generate sample feedback for testing
+- **`calculate-trust-score.js`** - Calculate trust scores for all agents
+- **`read-feedback.js`** - Read and display feedback summaries
+
+### Utility Scripts
+
+- **`example-external-usage.js`** - Example of how external systems can use the trust calculator
+
+## 🌐 Network Support
+
+### Local (Anvil)
+- **RPC**: `http://127.0.0.1:8545`
+- **Chain ID**: `31337`
+- **Accounts**: Uses Anvil test accounts (no private key needed)
+- **Deployment File**: `deployments.json`
+
+### Arbitrum Sepolia
+- **RPC**: `https://sepolia-rollup.arbitrum.io/rpc`
+- **Chain ID**: `421614`
+- **Accounts**: Requires `PRIVATE_KEY` environment variable
+- **Deployment File**: `deployments-arbitrum-sepolia.json`
+- **Block Explorer**: [Arbiscan Sepolia](https://sepolia.arbiscan.io/)
+
+## 🔄 Workflow
+
+### Understanding Private Keys
+
+The system uses two different private keys to prevent "self-feedback" errors:
+
+- **`PRIVATE_KEY`**: Used for deploying contracts and registering agents
+- **`FEEDBACK_PRIVATE_KEY`**: Used for giving feedback (should be a different wallet)
+
+This separation ensures that agents don't give feedback to themselves, which would cause errors in the reputation system.
+
+### 1. Deploy Contracts
+```bash
+node scripts/deploy-contracts.js
+```
+This creates a deployment file with contract addresses.
+
+### 2. Register Agents
+```bash
+node scripts/register-agents.js
+```
+Registers sample agents from the agent registry.
+
+### 3. Generate Feedback
+```bash
+node scripts/generate-feedback.js
+```
+Creates sample feedback entries for testing.
+
+### 4. Calculate Trust Scores
+```bash
+node scripts/calculate-trust-score.js
+```
+Calculates and displays trust scores for all agents.
+
+## 🛠️ Configuration
+
+### Network Configuration
+
+The system automatically detects the network based on the `NETWORK` environment variable:
 
 ```bash
-npm run read
-# or
-node read-feedback.js
+# Local development
+NETWORK=local
+
+# Arbitrum Sepolia
+NETWORK=arbitrum-sepolia
 ```
 
-**Prerequisites:** Run all previous scripts first
+### Private Key Management
 
-**Output:**
-- Shows feedback summaries for all agents
-- Demonstrates different filtering options
-- Displays overall statistics
-
-## Quick Start
-
-Run all scripts in sequence:
+For testnet deployments, you must provide a private key:
 
 ```bash
-npm run setup
+export PRIVATE_KEY=0x1234567890abcdef...
 ```
 
-This will:
-1. Deploy contracts
-2. Register agents
-3. Generate feedback
-4. Display summaries
+**Security Note**: Never commit private keys to version control. Use environment variables or secure key management systems.
 
-## Individual Usage
+## 📊 Trust Score Calculation
 
-Each script can be run independently if you have the required data files:
+The trust score algorithm considers:
 
-- `deployments.json` - contract addresses
-- `agent-mappings.json` - agent ID mappings
-- `feedback-data.json` - feedback metadata
+- **Average Score** (30% weight): Mean of all feedback scores
+- **Volume Score** (20% weight): Number of feedback entries (logarithmic scaling)
+- **Diversity Score** (30% weight): Ratio of unique reviewers to total feedback
+- **Consistency Score** (20% weight): Standard deviation of scores (lower is better)
 
-## File Structure
+## 🔍 External Integration
 
-```
-scripts/
-├── package.json              # Dependencies and scripts
-├── utils.js                  # Shared utilities
-├── deploy-contracts.js       # Contract deployment
-├── register-agents.js        # Agent registration
-├── generate-feedback.js      # Feedback generation
-├── read-feedback.js          # Feedback reading
-├── README.md                 # This file
-├── deployments.json          # Contract addresses (generated)
-├── agent-mappings.json       # Agent ID mappings (generated)
-└── feedback-data.json        # Feedback metadata (generated)
+External systems can use the trust calculator without running the full system:
+
+```javascript
+import { calculateTrustScoreByAddress } from './calculate-trust-score.js';
+
+const result = await calculateTrustScoreByAddress(
+  '0x...', // ReputationRegistry contract address
+  'https://sepolia-rollup.arbitrum.io/rpc', // RPC URL
+  1, // Agent ID
+  '0x...' // Private key (optional)
+);
+
+console.log(`Trust Score: ${(result.trustScore.finalScore * 100).toFixed(1)}%`);
 ```
 
-## Key Features
+## 🐛 Troubleshooting
 
-### Feedback Authorization
-- Uses EIP-191 signing for feedback authorization
-- Prevents self-feedback attacks
-- Includes expiry and index limits
+### Common Issues
 
-### Filtering Options
-- **Client filtering:** Filter by specific client addresses
-- **Tag filtering:** Filter by feedback tags (quality, speed, etc.)
-- **Combined filtering:** Use multiple filters together
+1. **"Private key is required" error**
+   - Set the `PRIVATE_KEY` environment variable
+   - Ensure the private key is valid (64 hex characters)
 
-### Test Data
-- Uses 10 test accounts from Anvil
-- Generates realistic feedback scores and tags
-- Creates varied feedback patterns
+2. **"Deployments file not found" error**
+   - Run `deploy-contracts.js` first
+   - Check that the correct network is configured
 
-## Example Output
+3. **"Invalid private key format" error**
+   - Ensure the private key starts with `0x`
+   - Verify the private key is 66 characters long (including `0x`)
 
-```
-📊 Reading feedback summaries...
+4. **RPC connection errors**
+   - Check your internet connection
+   - Verify the RPC URL is correct
+   - Try using a different RPC provider
 
-📈 Invoice Extraction Agent (ID: 1)
-   📊 All feedback: 4 entries, avg score: 78/100
-   🎯 Filtered by 3 clients: 3 entries, avg score: 82/100
-   🏷️  "quality" tag filter: 2 entries, avg score: 85/100
-   🏷️  "speed" tag filter: 1 entries, avg score: 90/100
+### Getting Help
 
-📋 Overall Summary:
-==================
-Invoice Extraction Agent (ID: 1): 4 feedback entries, avg score: 78/100
-Document Parser Pro (ID: 2): 3 feedback entries, avg score: 82/100
-...
-```
+- Check the console output for detailed error messages
+- Ensure all environment variables are set correctly
+- Verify you have sufficient testnet ETH for gas fees
 
-## Troubleshooting
+## 🔒 Security Best Practices
 
-1. **"Deployments file not found"** - Run `deploy-contracts.js` first
-2. **"Agent mappings file not found"** - Run `register-agents.js` first
-3. **"Feedback data file not found"** - Run `generate-feedback.js` first
-4. **Connection errors** - Ensure Anvil is running on port 8545
+1. **Never commit private keys** to version control
+2. **Use dedicated testnet wallets** for development
+3. **Keep minimal funds** in testnet wallets
+4. **Use hardware wallets** for production deployments
+5. **Rotate keys regularly** in development environments
 
-## Technical Details
+## 📝 License
 
-- **Network:** Anvil (localhost:8545, chain ID: 31337)
-- **Signing:** EIP-191 personal message signing
-- **Tags:** bytes32 encoded strings
-- **Scores:** 0-100 scale
-- **Authorization:** Includes expiry and index limits
+This project is part of the ERC-8004 implementation and follows the same licensing terms.

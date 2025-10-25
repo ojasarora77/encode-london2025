@@ -1,6 +1,7 @@
 {
-  "identityRegistry": "0x9E545E3C0baAB3E08CdfD552C960A1050f373042",
-  "reputationRegistry": "0x1e2F4432bFeF9E9Ad39DA6d272F4aFf33629c770",
+  "identityRegistry": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+  "reputationRegistry": "0x8464135c8F25Da09e49BC8782676a84730C318bC",
   "chainId": 31337,
-  "deployedAt": "2025-10-25T13:06:58.887Z"
+  "network": "Anvil Local",
+  "deployedAt": "2025-10-25T18:27:56.132Z"
 }

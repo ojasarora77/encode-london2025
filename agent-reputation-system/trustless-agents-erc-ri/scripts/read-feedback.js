@@ -10,15 +10,24 @@ import {
   formatAgentSummary,
   encodeBytes32String
 } from './utils.js';
+import { 
+  getCurrentNetworkConfig, 
+  validateEnvironment 
+} from './config.js';
 
 async function readFeedback() {
-  console.log('📊 Reading feedback summaries...\n');
+  // Validate environment and get network config
+  validateEnvironment();
+  const config = getCurrentNetworkConfig();
+  
+  console.log(`📊 Reading feedback summaries on ${config.name}...\n`);
 
   // Load deployment addresses
   const deployments = loadDeployments();
   console.log(`📋 Using contracts:`);
   console.log(`   IdentityRegistry: ${formatAddress(deployments.identityRegistry)}`);
-  console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}\n`);
+  console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}`);
+  console.log(`   Network: ${deployments.network || config.name}\n`);
 
   // Load agent mappings
   const agentMappings = loadAgentMappings();

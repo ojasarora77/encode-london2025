@@ -3,6 +3,7 @@
 import { ethers } from 'ethers';
 import { 
   getProviderAndSigner, 
+  getFeedbackProviderAndSigner,
   loadDeployments,
   loadAgentMappings,
   saveFeedbackData,
@@ -13,12 +14,19 @@ import {
   createFeedbackAuth,
   signFeedbackAuth,
   encodeBytes32String,
-  formatAddress,
-  ANVIL_CHAIN_ID
+  formatAddress
 } from './utils.js';
+import { 
+  getCurrentNetworkConfig, 
+  validateEnvironment 
+} from './config.js';
 
 async function generateFeedback() {
-  console.log('💬 Starting feedback generation...\n');
+  // Validate environment and get network config
+  validateEnvironment();
+  const config = getCurrentNetworkConfig();
+  
+  console.log(`💬 Starting feedback generation on ${config.name}...\n`);
   
   // Load deployment addresses and agent mappings
   const deployments = loadDeployments();
@@ -27,11 +35,15 @@ async function generateFeedback() {
   console.log(`📋 Using contracts:`);
   console.log(`   IdentityRegistry: ${formatAddress(deployments.identityRegistry)}`);
   console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}`);
+  console.log(`   Network: ${deployments.network || config.name}`);
   console.log(`📄 Loaded ${Object.keys(agentMappings).length} registered agents\n`);
   
-  // Get provider and signer (using first account as agent owner)
+  // Get provider and signer for agent operations
   const { provider, signer } = getProviderAndSigner(0);
   const { identityRegistry, reputationRegistry } = getContracts(signer);
+  
+  // Get feedback signer (separate from agent owner)
+  const { signer: feedbackSigner } = getFeedbackProviderAndSigner();
   
   const feedbackData = {};
   let totalFeedback = 0;
@@ -55,10 +67,8 @@ async function generateFeedback() {
       const feedbackCount = Math.floor(Math.random() * 3) + 3; // 3-5 feedback
       
       for (let i = 0; i < feedbackCount; i++) {
-        // Use different accounts for clients (accounts 2-3) to avoid conflicts with agent owners
-        const clientIndex = (i % 2) + 2; // Use accounts 2, 3 (only valid ones)
-        const { signer: clientSigner } = getProviderAndSigner(clientIndex);
-        const clientAccount = { address: clientSigner.address, privateKey: clientSigner.privateKey };
+        // Use feedback signer for all feedback operations
+        const clientAccount = { address: feedbackSigner.address, privateKey: feedbackSigner.privateKey };
         
         // Generate random score (60-100)
         const score = Math.floor(Math.random() * 41) + 60;
@@ -74,10 +84,10 @@ async function generateFeedback() {
         
         const auth = createFeedbackAuth(
           agentInfo.agentId,
-          clientSigner.address, // Use the client signer's address
+          feedbackSigner.address, // Use the feedback signer's address
           indexLimit,
           expiry,
-          ANVIL_CHAIN_ID,
+          config.chainId,
           deployments.identityRegistry,
           agentOwnerSigner.address // Use the correct agent owner's address
         );
@@ -88,11 +98,11 @@ async function generateFeedback() {
         console.log(`   📝 Feedback Auth: ${feedbackAuth}`);
         
         console.log(`   📝 Feedback ${i + 1}: Score ${score}, Tags: ${tag1}, ${tag2}`);
-        console.log(`   👤 Client: ${clientSigner.address}, Agent Owner: ${agentOwnerSigner.address}`);
+        console.log(`   👤 Client: ${feedbackSigner.address}, Agent Owner: ${agentOwnerSigner.address}`);
         
         try {
-          // Give feedback using the client signer
-          const tx = await reputationRegistry.connect(clientSigner).giveFeedback(
+          // Give feedback using the feedback signer
+          const tx = await reputationRegistry.connect(feedbackSigner).giveFeedback(
             agentInfo.agentId,
             score,
             encodeBytes32String(tag1),

@@ -1,14 +1,17 @@
 import { ethers } from 'ethers';
 import fs from 'fs';
 import path from 'path';
+import { 
+  getCurrentNetworkConfig, 
+  getPrivateKey, 
+  getFeedbackPrivateKey,
+  getDeploymentFileName,
+  validateEnvironment 
+} from './config.js';
 
 // Load contract ABIs
 const IDENTITY_REGISTRY_ABI = JSON.parse(fs.readFileSync('../out/IdentityRegistry.sol/IdentityRegistry.json', 'utf8')).abi;
 const REPUTATION_REGISTRY_ABI = JSON.parse(fs.readFileSync('../out/ReputationRegistry.sol/ReputationRegistry.json', 'utf8')).abi;
-
-// Anvil configuration
-const ANVIL_RPC_URL = 'http://127.0.0.1:8545';
-const ANVIL_CHAIN_ID = 31337;
 
 // Test accounts (Anvil default accounts)
 const TEST_ACCOUNTS = [
@@ -31,17 +34,56 @@ const TEST_PRIVATE_KEYS = [
   '0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba'
 ];
 
-// File paths
-const DEPLOYMENTS_FILE = 'deployments.json';
+// File paths - now dynamic based on network
 const AGENT_MAPPINGS_FILE = 'agent-mappings.json';
 const FEEDBACK_DATA_FILE = 'feedback-data.json';
 
 /**
- * Get provider and signer for Anvil
+ * Get provider and signer for current network
  */
 export function getProviderAndSigner(accountIndex = 0) {
-  const provider = new ethers.JsonRpcProvider(ANVIL_RPC_URL);
-  const wallet = new ethers.Wallet(TEST_PRIVATE_KEYS[accountIndex], provider);
+  const config = getCurrentNetworkConfig();
+  const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+  
+  // For local network, use test accounts
+  if (config.name === 'Anvil Local') {
+    const wallet = new ethers.Wallet(TEST_PRIVATE_KEYS[accountIndex], provider);
+    return { provider, signer: wallet };
+  }
+  
+  // For testnets, use private key from environment
+  const privateKey = getPrivateKey();
+  if (!privateKey) {
+    throw new Error(`Private key is required for ${config.name} network`);
+  }
+  
+  const wallet = new ethers.Wallet(privateKey, provider);
+  return { provider, signer: wallet };
+}
+
+/**
+ * Get provider and signer for feedback operations
+ * Uses FEEDBACK_PRIVATE_KEY if available, otherwise falls back to PRIVATE_KEY
+ */
+export function getFeedbackProviderAndSigner() {
+  const config = getCurrentNetworkConfig();
+  const provider = new ethers.JsonRpcProvider(config.rpcUrl);
+  
+  // For local network, use test accounts (use different accounts for feedback)
+  if (config.name === 'Anvil Local') {
+    // Use accounts 2-3 for feedback to avoid conflicts with agent owners (0-1)
+    const feedbackAccountIndex = 2;
+    const wallet = new ethers.Wallet(TEST_PRIVATE_KEYS[feedbackAccountIndex], provider);
+    return { provider, signer: wallet };
+  }
+  
+  // For testnets, use feedback private key
+  const feedbackPrivateKey = getFeedbackPrivateKey();
+  if (!feedbackPrivateKey) {
+    throw new Error(`Feedback private key is required for ${config.name} network. Please set FEEDBACK_PRIVATE_KEY or PRIVATE_KEY environment variable.`);
+  }
+  
+  const wallet = new ethers.Wallet(feedbackPrivateKey, provider);
   return { provider, signer: wallet };
 }
 
@@ -49,17 +91,19 @@ export function getProviderAndSigner(accountIndex = 0) {
  * Load deployment addresses
  */
 export function loadDeployments() {
-  if (!fs.existsSync(DEPLOYMENTS_FILE)) {
-    throw new Error(`Deployments file not found: ${DEPLOYMENTS_FILE}. Run deploy-contracts.js first.`);
+  const deploymentsFile = getDeploymentFileName();
+  if (!fs.existsSync(deploymentsFile)) {
+    throw new Error(`Deployments file not found: ${deploymentsFile}. Run deploy-contracts.js first.`);
   }
-  return JSON.parse(fs.readFileSync(DEPLOYMENTS_FILE, 'utf8'));
+  return JSON.parse(fs.readFileSync(deploymentsFile, 'utf8'));
 }
 
 /**
  * Save deployment addresses
  */
 export function saveDeployments(deployments) {
-  fs.writeFileSync(DEPLOYMENTS_FILE, JSON.stringify(deployments, null, 2));
+  const deploymentsFile = getDeploymentFileName();
+  fs.writeFileSync(deploymentsFile, JSON.stringify(deployments, null, 2));
 }
 
 /**
@@ -231,8 +275,6 @@ export function formatAgentSummary(agentName, agentId, count, averageScore) {
 export {
   IDENTITY_REGISTRY_ABI,
   REPUTATION_REGISTRY_ABI,
-  ANVIL_RPC_URL,
-  ANVIL_CHAIN_ID,
   TEST_ACCOUNTS,
   TEST_PRIVATE_KEYS
 };
