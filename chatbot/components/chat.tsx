@@ -95,8 +95,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             setPaymentDialog(true)
             console.log('   Payment dialog opened')
           }
-        } else if (response.status === 402 && (isProcessingPayment || isProcessingPaymentRef.current)) {
-          console.log('💳 402 received but already processing payment, ignoring')
+        } else if (response.status === 402) {
+          // Completely suppress 402 errors - only show payment dialog
+          console.log('💳 402 received - suppressing error, payment dialog will handle')
         } else if (response.status !== 200) {
           console.log('❌ Unexpected response status:', response.status)
           toast.error(`Unexpected response: ${response.status}`)
@@ -104,7 +105,12 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       },
       onError(error: Error) {
         console.log('❌ useChat error:', error)
-        toast.error('Chat error: ' + error.message)
+        // Suppress 402 payment errors - only show for other errors
+        if (!error.message.includes('402') && !error.message.includes('Payment required')) {
+          toast.error('Chat error: ' + error.message)
+        } else {
+          console.log('💳 Suppressing 402 payment error - payment dialog will handle')
+        }
       }
     })
 
@@ -248,7 +254,13 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       isProcessingPaymentRef.current = false
     } catch (error) {
       console.error('❌ Payment error:', error)
-      toast.error(error instanceof Error ? error.message : 'Payment failed')
+      // Suppress 402 payment errors during payment flow
+      if (error instanceof Error && (error.message.includes('402') || error.message.includes('Payment required'))) {
+        console.log('💳 Suppressing 402 error during payment flow')
+        toast.error('Payment processing failed. Please try again.')
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Payment failed')
+      }
       setPaymentDialog(false)
       setPendingPayment(null)
       setPendingMessageContent(null)
