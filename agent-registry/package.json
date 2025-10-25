@@ -8,6 +8,7 @@
     "start": "node dist/api/server.js",
     "build": "tsc",
     "index-agents": "ts-node scripts/index-agents.ts",
+    "rebuild-test-agents": "ts-node scripts/rebuild-index-from-test-agents.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
