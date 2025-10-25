@@ -50,7 +50,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <Providers attribute="class" defaultTheme="system" enableSystem>
           <div className="flex h-screen flex-col">
             <UniversalNavbar />
-            <main className="flex flex-1 flex-col min-h-0 pt-24">{children}</main>
+            <main className="flex flex-1 flex-col min-h-0 pt-28">{children}</main>
           </div>
           <TailwindIndicator />
         </Providers>
