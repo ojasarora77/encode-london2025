@@ -74,12 +74,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
           console.log('💳 402 Payment Required detected')
           const paymentHeader = response.headers.get('X-402-Payment-Required')
           console.log('   Payment header:', paymentHeader)
-          console.log('   Current payment dialog state:', paymentDialog)
           
           if (paymentHeader && !paymentDialog) {
-            // Stop any ongoing useChat requests
-            stop()
-            
             // Extract payment info from headers
             const amount = response.headers.get('X-402-Amount') || '0.01'
             const currency = response.headers.get('X-402-Currency') || 'USDC'
@@ -93,9 +89,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             console.log('   Storing message for retry:', lastRequestMessage)
             setPendingMessageContent(lastRequestMessage)
             
-            // Don't add user message manually - let useChat handle it
-            console.log('   User message will be handled by useChat')
-            
             setPendingPayment({
               amount,
               currency,
@@ -104,7 +97,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             })
             setPaymentDialog(true)
             console.log('   Payment dialog opened')
-            console.log('   Payment dialog state:', true)
           }
         } else if (response.status !== 200) {
           console.log('❌ Unexpected response status:', response.status)
@@ -170,10 +162,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       console.log('   Signature to send:', signature.slice(0, 30) + '...')
       toast.loading('Processing payment...', { id: 'payment-process' })
       
-      // Set the signature and retry with append
-      console.log('🔄 Setting signature and retrying with append')
+      // Simple retry with signature
+      console.log('🔄 Retrying with signature')
       console.log('   Signature to send:', signature.slice(0, 30) + '...')
-      console.log('   Message content:', pendingMessageContent)
       
       // Clear the pending state
       setPendingMessageContent(null)
@@ -181,14 +172,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       // Set the signature for the next request
       setPaymentSignature(signature)
       
-      // Use useChat's append function to retry the message with signature
-      if (pendingMessageContent) {
-        append({ 
-          role: 'user', 
-          content: pendingMessageContent,
-          data: { x402Signature: signature }
-        })
-      }
+      // Use useChat's reload function to retry
+      reload()
       
       toast.success('Payment processed!', { id: 'payment-process' })
       console.log('✅ Payment processed successfully')

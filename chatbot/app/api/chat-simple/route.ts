@@ -144,137 +144,8 @@ Only respond directly without using the tool for general questions, greetings, o
     : [systemPrompt, ...messages]
 
   try {
-    // Use OpenAI client to get tool calls
-    console.log('🤖 Calling Venice AI to check for tool calls...')
-    const response = await client.chat.completions.create({
-      model: 'llama-3.3-70b',
-      messages: messagesWithSystem,
-      temperature: 0.7,
-      tools: tools,
-      tool_choice: 'auto'
-    })
-
-    console.log('📥 Venice response:', {
-      hasContent: !!response.choices?.[0]?.message?.content,
-      hasToolCalls: !!response.choices?.[0]?.message?.tool_calls,
-      toolCallsCount: response.choices?.[0]?.message?.tool_calls?.length || 0
-    })
-
-    // Check if Venice wants to call tools
-    const toolCalls = response.choices?.[0]?.message?.tool_calls
-    if (toolCalls && toolCalls.length > 0) {
-      const toolCall = toolCalls[0]
-      if (toolCall.type === 'function') {
-        console.log('🔧 Tool call detected:', toolCall.function.name)
-        console.log('   Arguments:', toolCall.function.arguments)
-        
-        // Handle the tool call
-        if (toolCall.function.name === 'search_agents') {
-          const args = JSON.parse(toolCall.function.arguments)
-          console.log('🔍 Executing search_agents tool...')
-          console.log('   Query:', args.query)
-          console.log('   Limit:', args.limit)
-        
-          // Call MCP server (will get 402 if payment required, or success if signature provided)
-          const mcpResponse = await callMCPServer('search_agents', args, finalSignature)
-        
-          // Handle payment required response
-          if (mcpResponse.paymentRequired) {
-            console.log('💳 x402: Payment required')
-            console.log('   Amount:', mcpResponse.payment?.amount, mcpResponse.payment?.currency)
-            console.log('   Recipient:', mcpResponse.payment?.recipient)
-            console.log('   Network:', mcpResponse.payment?.network)
-            
-            console.log('🚀 Returning 402 Payment Required to client')
-            const response = new Response(JSON.stringify({
-              error: 'Payment required',
-              payment: mcpResponse.payment
-            }), {
-              status: 402,
-              headers: {
-                'Content-Type': 'application/json',
-                'X-402-Payment-Required': 'true',
-                'X-402-Amount': mcpResponse.payment?.amount || '0.01',
-                'X-402-Currency': mcpResponse.payment?.currency || 'USDC',
-                'X-402-Recipient': mcpResponse.payment?.recipient || '',
-                'X-402-Network': mcpResponse.payment?.network || 'arbitrum-sepolia'
-              }
-            })
-            console.log('📡 Response status:', response.status)
-            return response
-          }
-          
-          if (mcpResponse.error) {
-            console.error('❌ Tool execution failed:', mcpResponse.error)
-            return new Response('Tool execution failed', { status: 500 })
-          }
-        
-          if (mcpResponse.data) {
-            console.log('✅ Tool execution successful')
-            console.log('📊 Agent search data preview:', typeof mcpResponse.data)
-            
-            // Parse the search results
-            let searchResults
-            try {
-              // mcpResponse.data might already be parsed or a string
-              if (typeof mcpResponse.data === 'string') {
-                searchResults = JSON.parse(mcpResponse.data);
-              } else {
-                searchResults = mcpResponse.data;
-              }
-              console.log('📊 Parsed search results:', searchResults)
-            } catch (e) {
-              console.error('❌ Error parsing search results:', e)
-              searchResults = { results: [], total: 0 };
-            }
-            
-            // Add the search results as a system message for Venice to use
-            if (searchResults.total === 0 || searchResults.results?.length === 0) {
-              console.log('📊 No agents found, adding no-results message')
-              messagesWithSystem.push({
-                role: 'system',
-                content: `[TOOL EXECUTION COMPLETE]
-
-The search_agents tool found NO agents matching "${searchResults.query}".
-
-Please inform the user that:
-- No suitable agents were found in the registry
-- They should try a different search query
-- They can check back later when more agents are available`
-              })
-            } else {
-              // Format results in a readable way for Venice
-              console.log('📊 Formatting search results for Venice:', searchResults.results.length, 'agents')
-              const formattedResults = searchResults.results.map((agent: any, idx: number) => {
-                return `${idx + 1}. **${agent.name}** (ID: ${agent.agentId})
-   - Description: ${agent.description}
-   - Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
-   - Match Score: ${(agent.score * 100).toFixed(1)}%`
-              }).join('\n\n')
-              
-              const systemMessage = `[TOOL EXECUTION COMPLETE]
-
-The search_agents tool found ${searchResults.total} agent(s) for "${searchResults.query}":
-
-${formattedResults}
-
-Please present these agents to the user in a friendly, conversational way and explain how they can help.`
-              
-              console.log('📝 System message content length:', systemMessage.length)
-              console.log('📝 First 200 chars:', systemMessage.substring(0, 200))
-              
-              messagesWithSystem.push({
-                role: 'system',
-                content: systemMessage
-              })
-            }
-          }
-        }
-      }
-    }
-
-    // Now make the final streaming call with tool results (if any)
-    console.log('🎬 Making final streaming call to Venice...')
+    // Go straight to streaming call - handle tool calls in the stream
+    console.log('🎬 Making streaming call to Venice...')
     console.log('   Messages count:', messagesWithSystem.length)
     
     const stream = await client.chat.completions.create({
@@ -283,7 +154,7 @@ Please present these agents to the user in a friendly, conversational way and ex
       temperature: 0.7,
       stream: true,
       tools: tools,
-      tool_choice: 'none' // Don't call tools again
+      tool_choice: 'auto' // Allow tool calls for subsequent requests
     })
 
     console.log('📡 Final response status: 200')
@@ -293,13 +164,101 @@ Please present these agents to the user in a friendly, conversational way and ex
     const readableStream = new ReadableStream({
       async start(controller) {
         try {
+          let toolCallsAccumulator: any[] = []
+          
           for await (const chunk of stream) {
+            // Handle content chunks
             if (chunk.choices?.[0]?.delta?.content) {
               controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                 choices: [{
                   delta: { content: chunk.choices[0].delta.content }
                 }]
               })}\n\n`))
+            }
+            
+            // Handle tool calls in streaming response
+            if (chunk.choices?.[0]?.delta?.tool_calls) {
+              console.log('🔧 Tool call detected in streaming response')
+              const toolCalls = chunk.choices[0].delta.tool_calls
+              
+              // Accumulate tool calls
+              toolCallsAccumulator.push(...toolCalls)
+              
+              // Check if we have complete tool calls
+              for (const toolCall of toolCalls) {
+                if (toolCall.type === 'function' && toolCall.function?.name) {
+                  console.log('🔧 Complete tool call detected:', toolCall.function.name)
+                  console.log('   Arguments:', toolCall.function.arguments)
+                  
+                  // Handle the tool call immediately
+                  if (toolCall.function.name === 'search_agents') {
+                    try {
+                      const args = JSON.parse(toolCall.function.arguments || '{}')
+                      console.log('🔍 Executing search_agents tool from stream...')
+                      
+                      const mcpResponse = await callMCPServer('search_agents', args, finalSignature)
+                      
+                      if (mcpResponse.paymentRequired) {
+                        console.log('💳 Payment required in streaming response')
+                        // We need to handle this by stopping the stream and returning 402
+                        // But since we're in a stream, we'll add a special marker
+                        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                          choices: [{
+                            delta: { 
+                              content: `\n\n[PAYMENT_REQUIRED:${JSON.stringify(mcpResponse.payment)}]`
+                            }
+                          }]
+                        })}\n\n`))
+                        controller.close()
+                        return
+                      } else if (mcpResponse.data) {
+                        console.log('✅ Tool execution successful in stream')
+                        
+                        // Parse and format the search results properly
+                        let searchResults
+                        try {
+                          if (typeof mcpResponse.data === 'string') {
+                            searchResults = JSON.parse(mcpResponse.data);
+                          } else {
+                            searchResults = mcpResponse.data;
+                          }
+                        } catch (e) {
+                          console.error('❌ Error parsing search results:', e)
+                          searchResults = { results: [], total: 0 };
+                        }
+                        
+                        // Format results nicely
+                        if (searchResults.total > 0 && searchResults.results?.length > 0) {
+                          const formattedResults = searchResults.results.map((agent: any, idx: number) => {
+                            return `${idx + 1}. **${agent.name}** (ID: ${agent.agentId})
+   - Description: ${agent.description}
+   - Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
+   - Match Score: ${(agent.score * 100).toFixed(1)}%`
+                          }).join('\n\n')
+                          
+                          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                            choices: [{
+                              delta: { 
+                                content: `\n\n**Found ${searchResults.total} agent(s):**\n\n${formattedResults}`
+                              }
+                            }]
+                          })}\n\n`))
+                        } else {
+                          controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
+                            choices: [{
+                              delta: { 
+                                content: `\n\nNo agents found matching your query.`
+                              }
+                            }]
+                          })}\n\n`))
+                        }
+                      }
+                    } catch (error) {
+                      console.error('❌ Error handling tool call in stream:', error)
+                    }
+                  }
+                }
+              }
             }
           }
           controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'))
