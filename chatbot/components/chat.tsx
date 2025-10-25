@@ -8,7 +8,6 @@ import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
 import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { usePaymentAuth, type PaymentInfo } from '@/lib/hooks/use-payment-auth'
 import {
   Dialog,
   DialogContent,
@@ -21,6 +20,7 @@ import { useState, useCallback } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { toast } from 'react-hot-toast'
+import { usePaymentAuth, type PaymentInfo } from '@/lib/hooks/use-payment-auth'
 
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
@@ -50,17 +50,19 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     useChat({
       initialMessages,
       id,
+      api: '/api/chat-simple',
       body: {
         id,
         previewToken
       },
       onResponse(response: Response) {
         console.log('🔔 Chat received response:', response.status)
+        console.log('   Response headers:', Object.fromEntries(response.headers.entries()))
         
         if (response.status === 401) {
           toast.error(response.statusText)
         }
-        // Handle 402 Payment Required - check headers instead of reading body
+        // Handle 402 Payment Required
         if (response.status === 402) {
           console.log('💳 402 Payment Required detected')
           const paymentHeader = response.headers.get('X-402-Payment-Required')
@@ -71,11 +73,11 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             const amount = response.headers.get('X-402-Amount') || '0.01'
             const currency = response.headers.get('X-402-Currency') || 'USDC'
             const recipient = response.headers.get('X-402-Recipient') || ''
+            const network = response.headers.get('X-402-Network') || 'arbitrum-sepolia'
             
-            console.log('   Payment info:', { amount, currency, recipient })
+            console.log('   Payment info:', { amount, currency, recipient, network })
             
             // Store the message content that triggered the payment
-            // Get it from the last message in the request (which won't be in messages array yet)
             const lastRequestMessage = messages[messages.length - 1]?.content || input
             console.log('   Storing message for retry:', lastRequestMessage)
             setPendingMessageContent(lastRequestMessage)
@@ -84,22 +86,18 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
               amount,
               currency,
               recipient,
-              network: 'arbitrum-sepolia'
+              network
             })
             setPaymentDialog(true)
             console.log('   Payment dialog opened')
-          } else {
-            console.warn('   No X-402-Payment-Required header found')
           }
+        } else if (response.status !== 200) {
+          console.log('❌ Unexpected response status:', response.status)
+          toast.error(`Unexpected response: ${response.status}`)
         }
       },
       onError(error: Error) {
         console.log('❌ useChat error:', error)
-        // Suppress 402 errors since we handle them manually
-        if (error.message && error.message.includes('paymentRequired')) {
-          console.log('   (Suppressing 402 error - handled by payment dialog)')
-          return
-        }
         toast.error('Chat error: ' + error.message)
       }
     })
@@ -107,6 +105,12 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   const handlePayment = useCallback(async () => {
     if (!pendingPayment || !pendingMessageContent) {
       console.error('Missing payment info or message content')
+      return
+    }
+
+    if (!address) {
+      console.log('🔗 Connecting wallet...')
+      await connectWallet()
       return
     }
 
@@ -125,7 +129,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       setPaymentDialog(false)
       setPendingPayment(null)
 
-      // Create the message to send
+      // Create the message to send with signature
       const messagesToSend = [
         ...messages,
         { role: 'user' as const, content: pendingMessageContent }
@@ -137,7 +141,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       toast.loading('Processing payment...', { id: 'payment-process' })
       
       // Directly call the API with signature
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/chat-simple', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -156,20 +160,16 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         toast.success('Payment processed!', { id: 'payment-process' })
         console.log('✅ Payment processed successfully')
         
-        // Clear the pending message and dialog
+        // Clear the pending state
         setPendingMessageContent(null)
-        setPaymentDialog(false)
         
-        // Read the streaming response
+        // Read the streaming response and add assistant message
         const reader = response.body?.getReader()
         const decoder = new TextDecoder()
         let accumulatedText = ''
         
         if (reader) {
           console.log('📖 Reading streaming response...')
-          
-          // Add user message first
-          const userMessage = { role: 'user' as const, content: pendingMessageContent, id: `user-${Date.now()}` }
           
           try {
             while (true) {
@@ -199,11 +199,22 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             
             console.log('📝 Final response length:', accumulatedText.length)
             
-            // Force reload to get the complete conversation
-            reload()
+            // Add user message first
+            const userMessage = { role: 'user' as const, content: pendingMessageContent || '', id: `user-${Date.now()}` }
+            await append(userMessage)
+            
+            // Add the assistant's response to the conversation
+            if (accumulatedText.trim()) {
+              await append({ 
+                role: 'assistant', 
+                content: accumulatedText,
+                id: `assistant-${Date.now()}`
+              })
+            }
             
           } catch (streamError) {
             console.error('❌ Error reading stream:', streamError)
+            // Fallback: just reload to get the conversation
             reload()
           }
         } else {
@@ -225,7 +236,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       setPendingPayment(null)
       setPendingMessageContent(null)
     }
-  }, [pendingPayment, pendingMessageContent, generateSignature, messages, id, previewToken, reload])
+  }, [pendingPayment, pendingMessageContent, address, connectWallet, generateSignature, messages, id, previewToken, append, reload])
 
   return (
     <>

@@ -1,6 +1,12 @@
 import { OpenAIStream, StreamingTextResponse } from 'ai'
+import OpenAI from 'openai'
 
 export const runtime = 'edge'
+
+const client = new OpenAI({
+  apiKey: process.env.VENICE_API_KEY,
+  baseURL: 'https://api.venice.ai/api/v1'
+})
 
 // Define the search_agents tool for Venice AI
 const tools = [
@@ -58,7 +64,7 @@ const tools = [
 
 // x402 MCP client with payment handling
 async function callMCPToolWithPayment(toolName: string, args: any, x402Signature?: string) {
-  const mcpUrl = process.env.MCP_SERVER_URL || 'http://localhost:3002/mcp'
+  const mcpUrl = process.env.MCP_SERVER_URL || 'http://localhost:8787'
   
   try {
     // First attempt - check if payment is required
@@ -303,6 +309,7 @@ Only respond directly without using the tool for general questions, greetings, o
         
         // Add the search results as a system message for Venice to use
         if (searchResults.total === 0 || searchResults.results?.length === 0) {
+          console.log('📊 No agents found, adding no-results message')
           messagesWithSystem.push({
             role: 'system',
             content: `[TOOL EXECUTION COMPLETE]${paymentNote}
@@ -316,6 +323,7 @@ Please inform the user that:
           })
         } else {
           // Format results in a readable way for Venice
+          console.log('📊 Formatting search results for Venice:', searchResults.results.length, 'agents')
           const formattedResults = searchResults.results.map((agent: any, idx: number) => {
             return `${idx + 1}. **${agent.name}** (ID: ${agent.agentId})
    - Description: ${agent.description}
@@ -323,15 +331,20 @@ Please inform the user that:
    - Match Score: ${(agent.score * 100).toFixed(1)}%`
           }).join('\n\n')
           
-          messagesWithSystem.push({
-            role: 'system',
-            content: `[TOOL EXECUTION COMPLETE]${paymentNote}
+          const systemMessage = `[TOOL EXECUTION COMPLETE]${paymentNote}
 
 The search_agents tool found ${searchResults.total} agent(s) for "${searchResults.query}":
 
 ${formattedResults}
 
 Please present these agents to the user in a friendly, conversational way and explain how they can help.`
+          
+          console.log('📝 System message content length:', systemMessage.length)
+          console.log('📝 First 200 chars:', systemMessage.substring(0, 200))
+          
+          messagesWithSystem.push({
+            role: 'system',
+            content: systemMessage
           })
         }
       }
@@ -344,7 +357,7 @@ Please present these agents to the user in a friendly, conversational way and ex
   
   // Log full messages for debugging
   console.log('📨 Full messages being sent:')
-  messagesWithSystem.forEach((msg: any, idx) => {
+  messagesWithSystem.forEach((msg: any, idx: number) => {
     console.log(`   [${idx}] ${msg.role}: ${msg.content?.substring(0, 200)}...`)
   })
   
