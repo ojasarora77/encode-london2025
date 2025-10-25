@@ -30,7 +30,7 @@ export default {
               tools: [
                 {
                   name: 'search_agents',
-                  description: 'Search the agent registry to find agents with specific capabilities using semantic search (PAID TOOL - $0.001 USDC)',
+                  description: 'Search the agent registry to find agents with specific capabilities using semantic search (PAID TOOL - $0.01 USDC)',
                   inputSchema: {
                     type: 'object',
                     properties: {
@@ -107,11 +107,11 @@ export default {
                   message: 'Payment required',
                   data: {
                     payment: {
-                      amount: '0.001',
+                      amount: '0.01',
                       currency: 'USDC',
                       network: config.NETWORK,
                       recipient: config.SELLER_ADDRESS,
-                      description: 'Agent Registry Search - $0.001 USDC'
+                      description: 'Agent Registry Search - $0.01 USDC'
                     }
                   }
                 }
@@ -121,7 +121,7 @@ export default {
                 headers: { 
                   'Content-Type': 'application/json',
                   'X-402-Payment-Required': 'true',
-                  'X-402-Amount': '0.001',
+                  'X-402-Amount': '0.01',
                   'X-402-Currency': 'USDC',
                   'X-402-Network': config.NETWORK,
                   'X-402-Recipient': config.SELLER_ADDRESS
@@ -181,7 +181,7 @@ export default {
                         total: results.total,
                         timestamp: results.timestamp,
                         payment: {
-                          amount: '0.001',
+                          amount: '0.01',
                           currency: 'USDC',
                           transaction: paymentTx || 'no-payment-required',
                           network: config.NETWORK,
@@ -201,7 +201,7 @@ export default {
                 headers: { 
                   'Content-Type': 'application/json',
                   'X-402-Payment-Processed': paymentTx ? 'true' : 'false',
-                  'X-402-Amount': '0.001',
+                  'X-402-Amount': '0.01',
                   'X-402-Currency': 'USDC',
                   'X-402-Transaction': paymentTx || 'none'
                 }

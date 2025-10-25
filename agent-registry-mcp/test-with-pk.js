@@ -59,9 +59,24 @@ async function testRealPaymentsWithPK() {
     });
     
     console.log(`   Purchaser ETH Balance: ${formatUnits(purchaserBalance, 18)} ETH`);
+    
+    // Check USDC balance
+    const usdcContractAddress = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+    const usdcBalance = await publicClient.readContract({
+      address: usdcContractAddress,
+      abi: [{
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+      }],
+      functionName: 'balanceOf',
+      args: [purchaserAddress]
+    });
+    
+    console.log(`   Purchaser USDC Balance: ${formatUnits(usdcBalance, 6)} USDC`);
 
-    // Check USDC balance (if you have USDC contract address)
-    // For now, we'll assume you have USDC or will get it from faucet
 
     console.log('\n2️⃣  Testing MCP server...');
     
@@ -118,18 +133,22 @@ async function testRealPaymentsWithPK() {
       console.log(`   Network: ${paymentData.error.data.payment.network}\n`);
       
       const recipientAddress = paymentData.error.data.payment.recipient;
-      const paymentAmount = parseUnits('0.001', 6); // 0.001 USDC
+      const paymentAmount = parseUnits('0.01', 6); // 0.01 USDC
       
       console.log('4️⃣  Making REAL testnet payment...');
       console.log(`   Sending ${formatUnits(paymentAmount, 6)} USDC to ${recipientAddress}`);
       
-      // For now, let's send ETH instead of USDC (simpler)
-      const ethAmount = parseUnits('0.001', 18); // 0.001 ETH
+      // USDC contract address on Arbitrum Sepolia
+      const usdcContractAddress = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+      
+      // Create USDC transfer transaction using ERC-20 transfer function
+      const transferData = `0xa9059cbb${recipientAddress.slice(2).padStart(64, '0')}${paymentAmount.toString(16).padStart(64, '0')}`;
       
       const txHash = await walletClient.sendTransaction({
         account: purchaserAccount,
-        to: recipientAddress,
-        value: ethAmount,
+        to: usdcContractAddress,
+        data: transferData,
+        value: 0n, // No ETH value, this is an ERC-20 transfer
       });
       
       console.log(`   Transaction Hash: ${txHash}`);
