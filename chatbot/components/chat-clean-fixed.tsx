@@ -242,7 +242,7 @@ export function ChatCleanFixed({ className }: ChatProps) {
   }, [pendingPayment, pendingMessage, address, connectWallet, generateSignature, messages])
 
   return (
-    <div className={className}>
+    <div className={`${className} flex flex-col h-full`}>
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
@@ -328,8 +328,8 @@ export function ChatCleanFixed({ className }: ChatProps) {
         )}
       </div>
 
-      {/* Input */}
-      <div className="border-t p-4">
+      {/* Input - Sticky at bottom */}
+      <div className="sticky bottom-0 bg-background border-t p-4 shadow-lg">
         <form
           onSubmit={(e) => {
             e.preventDefault()
