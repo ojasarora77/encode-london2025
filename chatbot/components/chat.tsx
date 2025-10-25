@@ -41,6 +41,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false)
   const isProcessingPaymentRef = useRef(false)
   const hasProcessedPaymentRef = useRef(false)
+  const [paymentSignature, setPaymentSignature] = useState<string | undefined>(undefined)
 
   const {
     address,
@@ -56,23 +57,29 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       api: '/api/chat-simple',
       body: {
         id,
-        previewToken
+        previewToken,
+        x402Signature: paymentSignature
       },
       onResponse(response: Response) {
         console.log('🔔 Chat received response:', response.status)
         console.log('   Response headers:', Object.fromEntries(response.headers.entries()))
         console.log('   Is processing payment:', isProcessingPayment)
+        console.log('   Payment dialog state:', paymentDialog)
         
         if (response.status === 401) {
           toast.error(response.statusText)
         }
-        // Handle 402 Payment Required (but not if we're already processing payment or have processed payment)
-        if (response.status === 402 && !isProcessingPayment && !isProcessingPaymentRef.current && !hasProcessedPaymentRef.current) {
+        // Handle 402 Payment Required
+        if (response.status === 402) {
           console.log('💳 402 Payment Required detected')
           const paymentHeader = response.headers.get('X-402-Payment-Required')
           console.log('   Payment header:', paymentHeader)
+          console.log('   Current payment dialog state:', paymentDialog)
           
-          if (paymentHeader) {
+          if (paymentHeader && !paymentDialog) {
+            // Stop any ongoing useChat requests
+            stop()
+            
             // Extract payment info from headers
             const amount = response.headers.get('X-402-Amount') || '0.01'
             const currency = response.headers.get('X-402-Currency') || 'USDC'
@@ -86,6 +93,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             console.log('   Storing message for retry:', lastRequestMessage)
             setPendingMessageContent(lastRequestMessage)
             
+            // Don't add user message manually - let useChat handle it
+            console.log('   User message will be handled by useChat')
+            
             setPendingPayment({
               amount,
               currency,
@@ -94,10 +104,8 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
             })
             setPaymentDialog(true)
             console.log('   Payment dialog opened')
+            console.log('   Payment dialog state:', true)
           }
-        } else if (response.status === 402) {
-          // Completely suppress 402 errors - only show payment dialog
-          console.log('💳 402 received - suppressing error, payment dialog will handle')
         } else if (response.status !== 200) {
           console.log('❌ Unexpected response status:', response.status)
           toast.error(`Unexpected response: ${response.status}`)
@@ -115,6 +123,10 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     })
 
   const handlePayment = useCallback(async () => {
+    console.log('💰 handlePayment called')
+    console.log('   pendingPayment:', !!pendingPayment)
+    console.log('   pendingMessageContent:', !!pendingMessageContent)
+    
     if (!pendingPayment || !pendingMessageContent) {
       console.error('Missing payment info or message content')
       return
@@ -158,100 +170,35 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       console.log('   Signature to send:', signature.slice(0, 30) + '...')
       toast.loading('Processing payment...', { id: 'payment-process' })
       
-      // Make a direct API call with signature
-      console.log('🔄 Making direct API call with signature')
-      const response = await fetch('/api/chat-simple', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messages: [
-            ...messages,
-            { role: 'user', content: pendingMessageContent || '' }
-          ],
-          id,
-          previewToken,
-          x402Signature: signature
-        })
-      })
+      // Set the signature and retry with append
+      console.log('🔄 Setting signature and retrying with append')
+      console.log('   Signature to send:', signature.slice(0, 30) + '...')
+      console.log('   Message content:', pendingMessageContent)
       
-      if (response.ok) {
-        toast.success('Payment processed!', { id: 'payment-process' })
-        console.log('✅ Payment processed successfully')
-        
-        // Clear the pending state
-        setPendingMessageContent(null)
-        
-        // Add the user message first
-        await append({ 
+      // Clear the pending state
+      setPendingMessageContent(null)
+      
+      // Set the signature for the next request
+      setPaymentSignature(signature)
+      
+      // Use useChat's append function to retry the message with signature
+      if (pendingMessageContent) {
+        append({ 
           role: 'user', 
-          content: pendingMessageContent || '',
-          id: `user-${Date.now()}`
+          content: pendingMessageContent,
+          data: { x402Signature: signature }
         })
-        
-        // Read the streaming response and add assistant message
-        const reader = response.body?.getReader()
-        const decoder = new TextDecoder()
-        let accumulatedText = ''
-        
-        if (reader) {
-          console.log('📖 Reading streaming response...')
-          
-          try {
-            while (true) {
-              const { done, value } = await reader.read()
-              if (done) {
-                console.log('✅ Stream complete')
-                break
-              }
-              
-              const chunk = decoder.decode(value)
-              const lines = chunk.split('\n')
-              
-              for (const line of lines) {
-                if (line.startsWith('data: ') && !line.includes('[DONE]')) {
-                  try {
-                    const data = JSON.parse(line.slice(6))
-                    const content = data.choices?.[0]?.delta?.content
-                    if (content) {
-                      accumulatedText += content
-                    }
-                  } catch (e) {
-                    // Ignore parse errors
-                  }
-                }
-              }
-            }
-            
-            console.log('📝 Final response length:', accumulatedText.length)
-            
-            // Add the assistant's response to the conversation
-            if (accumulatedText.trim()) {
-              await append({ 
-                role: 'assistant', 
-                content: accumulatedText,
-                id: `assistant-${Date.now()}`
-              })
-            }
-            
-          } catch (streamError) {
-            console.error('❌ Error reading stream:', streamError)
-            // Fallback: just reload to get the conversation
-            reload()
-          }
-        } else {
-          // No stream, just reload
-          reload()
-        }
-      } else {
-        toast.error('Payment failed. Please try again.', { id: 'payment-process' })
-        console.error('❌ Payment failed:', response.status)
       }
+      
+      toast.success('Payment processed!', { id: 'payment-process' })
+      console.log('✅ Payment processed successfully')
       
       // Clear processing state
       setIsProcessingPayment(false)
       isProcessingPaymentRef.current = false
+      
+      // Clear the signature after use
+      setTimeout(() => setPaymentSignature(undefined), 1000)
     } catch (error) {
       console.error('❌ Payment error:', error)
       // Suppress 402 payment errors during payment flow

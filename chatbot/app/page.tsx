@@ -1,10 +1,11 @@
-import { nanoid } from '@/lib/utils'
-import { Chat } from '@/components/chat'
+import { ChatClean } from '@/components/chat-clean'
 
 export const runtime = 'edge'
 
 export default function IndexPage() {
-  const id = nanoid()
-
-  return <Chat id={id} />
+  return (
+    <div className="flex flex-col h-screen">
+      <ChatClean className="flex-1" />
+    </div>
+  )
 }

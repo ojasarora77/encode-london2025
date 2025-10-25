@@ -107,9 +107,20 @@ export async function POST(req: Request) {
   const json = await req.json()
   const { messages, x402Signature } = json
   
+  // Check if the last message has signature data
+  const lastMessage = messages?.[messages.length - 1]
+  const signatureFromData = lastMessage?.data?.x402Signature
+  
+  // Also check for signature in request headers (from localStorage)
+  const signatureFromHeader = req.headers.get('x-402-signature')
+  
+  const finalSignature = x402Signature || signatureFromData || signatureFromHeader
+  
   console.log('📨 Chat API received request')
   console.log('   Messages count:', messages?.length)
-  console.log('   Has x402Signature:', !!x402Signature)
+  console.log('   Has x402Signature:', !!finalSignature)
+  console.log('   Signature from data:', !!signatureFromData)
+  console.log('   Last message data:', lastMessage?.data)
 
   const apiKey = process.env.VENICE_API_KEY
   
@@ -165,7 +176,7 @@ Only respond directly without using the tool for general questions, greetings, o
           console.log('   Limit:', args.limit)
         
           // Call MCP server (will get 402 if payment required, or success if signature provided)
-          const mcpResponse = await callMCPServer('search_agents', args, x402Signature)
+          const mcpResponse = await callMCPServer('search_agents', args, finalSignature)
         
           // Handle payment required response
           if (mcpResponse.paymentRequired) {
