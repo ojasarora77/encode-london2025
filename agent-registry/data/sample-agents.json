@@ -1,45 +1,20 @@
 [
   {
-    "id": "invoice-extract-001",
-    "name": "Invoice Extraction Agent",
-    "description": "Extracts relevant fields from uploaded invoices and provides validation checks",
-    "url": "https://agents.example.com/invoice-extraction",
-    "version": "2.3.0",
-    "provider": "AI Workflow Inc.",
-    "capabilities": ["streaming", "batch-processing", "pushNotifications"],
-    "defaultInputModes": ["application/pdf", "image/png"],
-    "defaultOutputModes": ["application/json", "text/csv"],
+    "id": "coder-agent-001",
+    "name": "Coder Agent",
+    "description": "An agent that generates code based on natural language instructions using Llama 3.3 70B via Venice AI",
+    "url": "https://agents.example.com/coder-agent",
+    "version": "0.0.3",
+    "provider": "A2A Samples",
+    "capabilities": ["streaming", "pushNotifications", "stateTransitionHistory"],
+    "defaultInputModes": ["text"],
+    "defaultOutputModes": ["text", "file"],
     "skills": [
       {
-        "id": "extract_fields",
-        "name": "Invoice Field Extraction",
-        "description": "Pulls line items, total, vendor, date from invoices",
-        "tags": ["invoice", "document", "ocr", "extraction"]
-      },
-      {
-        "id": "validate_invoice",
-        "name": "Invoice Validation",
-        "description": "Checks invoice for completeness and fraud patterns",
-        "tags": ["invoice", "validation", "compliance"]
-      }
-    ]
-  },
-  {
-    "id": "doc-parser-202",
-    "name": "Document Parser Pro",
-    "description": "General purpose document processing and data extraction from various formats",
-    "url": "https://agents.example.com/doc-parser",
-    "version": "1.5.0",
-    "provider": "DocAI Corp",
-    "capabilities": ["streaming", "ocr"],
-    "defaultInputModes": ["application/pdf", "application/docx", "image/jpeg"],
-    "defaultOutputModes": ["application/json", "text/plain"],
-    "skills": [
-      {
-        "id": "parse_document",
-        "name": "Document Parsing",
-        "description": "Extracts structured data from unstructured documents",
-        "tags": ["document", "parsing", "extraction"]
+        "id": "code_generation",
+        "name": "Code Generation",
+        "description": "Generates code snippets or complete files based on user requests using Llama 3.3 70B",
+        "tags": ["code", "development", "programming", "llama", "venice-ai"]
       }
     ]
   },
@@ -65,31 +40,6 @@
         "name": "Language Detection",
         "description": "Automatically detects source language for translation",
         "tags": ["language", "detection", "nlp"]
-      }
-    ]
-  },
-  {
-    "id": "image-analyzer-301",
-    "name": "Smart Image Analyzer",
-    "description": "Advanced image analysis with object detection, OCR, and scene understanding",
-    "url": "https://agents.example.com/image-analyzer",
-    "version": "4.2.1",
-    "provider": "VisionTech Solutions",
-    "capabilities": ["batch-processing", "ocr"],
-    "defaultInputModes": ["image/jpeg", "image/png", "image/gif"],
-    "defaultOutputModes": ["application/json", "text/plain"],
-    "skills": [
-      {
-        "id": "object_detection",
-        "name": "Object Detection",
-        "description": "Identifies and locates objects within images",
-        "tags": ["computer-vision", "object-detection", "ai"]
-      },
-      {
-        "id": "text_extraction",
-        "name": "Image Text Extraction",
-        "description": "Extracts text from images using advanced OCR",
-        "tags": ["ocr", "text-extraction", "image-processing"]
       }
     ]
   },
@@ -144,31 +94,6 @@
     ]
   },
   {
-    "id": "financial-analyzer-601",
-    "name": "Financial Data Analyzer",
-    "description": "Analyzes financial data, generates reports, and provides investment insights",
-    "url": "https://agents.example.com/financial-analyzer",
-    "version": "3.0.2",
-    "provider": "FinTech AI",
-    "capabilities": ["batch-processing", "streaming"],
-    "defaultInputModes": ["application/json", "text/csv", "application/pdf"],
-    "defaultOutputModes": ["application/json", "text/markdown", "application/pdf"],
-    "skills": [
-      {
-        "id": "trend_analysis",
-        "name": "Trend Analysis",
-        "description": "Identifies financial trends and patterns in data",
-        "tags": ["finance", "trends", "analysis"]
-      },
-      {
-        "id": "risk_assessment",
-        "name": "Risk Assessment",
-        "description": "Evaluates financial risk and provides recommendations",
-        "tags": ["risk", "finance", "assessment"]
-      }
-    ]
-  },
-  {
     "id": "email-classifier-701",
     "name": "Email Classification Agent",
     "description": "Automatically classifies emails by category, priority, and sentiment",
@@ -190,56 +115,6 @@
         "name": "Spam Detection",
         "description": "Identifies and filters spam emails",
         "tags": ["spam", "security", "filtering"]
-      }
-    ]
-  },
-  {
-    "id": "data-extractor-801",
-    "name": "Web Data Extractor",
-    "description": "Extracts structured data from websites and web pages with intelligent parsing",
-    "url": "https://agents.example.com/data-extractor",
-    "version": "2.1.0",
-    "provider": "WebScrape AI",
-    "capabilities": ["streaming", "batch-processing"],
-    "defaultInputModes": ["text/html", "application/json"],
-    "defaultOutputModes": ["application/json", "text/csv"],
-    "skills": [
-      {
-        "id": "web_scraping",
-        "name": "Web Scraping",
-        "description": "Extracts data from web pages and websites",
-        "tags": ["web-scraping", "data-extraction", "parsing"]
-      },
-      {
-        "id": "data_cleaning",
-        "name": "Data Cleaning",
-        "description": "Cleans and normalizes extracted data",
-        "tags": ["data-cleaning", "normalization", "processing"]
-      }
-    ]
-  },
-  {
-    "id": "voice-transcriber-901",
-    "name": "Voice Transcription Agent",
-    "description": "Converts speech to text with high accuracy and speaker identification",
-    "url": "https://agents.example.com/voice-transcriber",
-    "version": "1.7.0",
-    "provider": "AudioAI",
-    "capabilities": ["streaming", "real-time"],
-    "defaultInputModes": ["audio/mpeg", "audio/wav", "audio/mp3"],
-    "defaultOutputModes": ["text/plain", "application/json"],
-    "skills": [
-      {
-        "id": "speech_to_text",
-        "name": "Speech to Text",
-        "description": "Converts audio to text with high accuracy",
-        "tags": ["speech", "transcription", "audio"]
-      },
-      {
-        "id": "speaker_identification",
-        "name": "Speaker Identification",
-        "description": "Identifies different speakers in audio",
-        "tags": ["speaker", "identification", "audio"]
       }
     ]
   },

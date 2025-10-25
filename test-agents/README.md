@@ -48,6 +48,24 @@ All agents follow the A2A standard and are implemented as Cloudflare Workers usi
 - **Skills**: Email classification, spam detection
 - **Description**: Automatically classifies emails by category and priority
 
+### 8. Quality Assurance Agent
+- **Port**: 41249
+- **Directory**: `quality-assurance-agent/`
+- **Skills**: Test generation, bug detection
+- **Description**: Automated testing and quality assurance for software applications
+
+### 9. Recommendation Engine
+- **Port**: 41250
+- **Directory**: `recommendation-engine-agent/`
+- **Skills**: Collaborative filtering, content-based filtering
+- **Description**: Personalized recommendation system for products, content, and services
+
+### 10. Fraud Detection Agent
+- **Port**: 41251
+- **Directory**: `fraud-detector-agent/`
+- **Skills**: Anomaly detection, risk scoring
+- **Description**: Advanced fraud detection using machine learning and pattern recognition
+
 ## 🚀 Quick Start
 
 ### Prerequisites
