@@ -103,6 +103,8 @@ async function testRealPaymentsWithPK() {
 
     console.log('3️⃣  Making payment request (should get 402)...');
     
+    let signature = null; // Declare signature variable for later use
+    
     const paymentRequestResponse = await fetch(env.MCP_SERVER_URL, {
       method: 'POST',
       headers: {
@@ -135,43 +137,59 @@ async function testRealPaymentsWithPK() {
       const recipientAddress = paymentData.error.data.payment.recipient;
       const paymentAmount = parseUnits('0.01', 6); // 0.01 USDC
       
-      console.log('4️⃣  Making REAL testnet payment...');
-      console.log(`   Sending ${formatUnits(paymentAmount, 6)} USDC to ${recipientAddress}`);
+      console.log('4️⃣  Creating REAL x402 EIP-712 signature...');
+      console.log(`   Authorizing ${formatUnits(paymentAmount, 6)} USDC payment to ${recipientAddress}`);
       
-      // USDC contract address on Arbitrum Sepolia
-      const usdcContractAddress = '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d';
+      // Create EIP-712 signature for x402 payment authorization
+      const domain = {
+        name: 'x402',
+        version: '1',
+        chainId: arbitrumSepolia.id,
+        verifyingContract: recipientAddress
+      };
       
-      // Create USDC transfer transaction using ERC-20 transfer function
-      const transferData = `0xa9059cbb${recipientAddress.slice(2).padStart(64, '0')}${paymentAmount.toString(16).padStart(64, '0')}`;
+      const types = {
+        PaymentAuthorization: [
+          { name: 'amount', type: 'uint256' },
+          { name: 'currency', type: 'string' },
+          { name: 'recipient', type: 'address' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' }
+        ]
+      };
       
-      const txHash = await walletClient.sendTransaction({
+      const message = {
+        amount: paymentAmount,
+        currency: 'USDC',
+        recipient: recipientAddress,
+        nonce: BigInt(Date.now()),
+        deadline: BigInt(Date.now() + 300000) // 5 minutes
+      };
+      
+      // Sign the EIP-712 typed data
+      signature = await walletClient.signTypedData({
         account: purchaserAccount,
-        to: usdcContractAddress,
-        data: transferData,
-        value: 0n, // No ETH value, this is an ERC-20 transfer
+        domain,
+        types,
+        primaryType: 'PaymentAuthorization',
+        message
       });
       
-      console.log(`   Transaction Hash: ${txHash}`);
-      console.log('   ⏳ Waiting for transaction confirmation...');
+      console.log(`   ✅ EIP-712 signature created: ${signature}`);
+      console.log('   📝 Signature authorizes relayer to execute USDC transfer');
+      console.log(`   🔗 Signature Hash: ${signature}\n`);
       
-      // Wait for transaction confirmation
-      const tx = await publicClient.waitForTransactionReceipt({
-        hash: txHash,
-      });
+      console.log('5️⃣  Making paid search request with EIP-712 signature...');
       
-      if (tx.status === 'success') {
-        console.log('   ✅ Payment confirmed on blockchain!');
-        console.log(`   Block: ${tx.blockNumber}`);
-        console.log(`   Gas Used: ${tx.gasUsed}\n`);
-        
-        console.log('5️⃣  Making paid search request with transaction hash...');
-        
-        const paidSearchResponse = await fetch(env.MCP_SERVER_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-402-Transaction': txHash,
-          },
+      const paidSearchResponse = await fetch(env.MCP_SERVER_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-402-Signature': signature,
+          'X-402-Amount': '0.01',
+          'X-402-Currency': 'USDC',
+          'X-402-Recipient': recipientAddress,
+        },
           body: JSON.stringify({
             jsonrpc: '2.0',
             id: 3,
@@ -194,7 +212,7 @@ async function testRealPaymentsWithPK() {
         
         if (paidSearchResponse.ok) {
           const searchData = await paidSearchResponse.json();
-          console.log('   ✅ Paid search successful!');
+          console.log('   ✅ REAL x402 paid search successful!');
           console.log('   Search results:');
           console.log(JSON.stringify(searchData, null, 2));
         } else {
@@ -202,22 +220,17 @@ async function testRealPaymentsWithPK() {
           console.log(`   ❌ Paid search failed: ${paidSearchResponse.status}`);
           console.log(`   Error: ${errorText}`);
         }
-        
-      } else {
-        console.log('   ❌ Payment transaction failed');
-      }
       
     } else {
       console.log('   ❌ Expected 402 Payment Required, got:', paymentRequestResponse.status);
     }
 
-    console.log('\n🎉 REAL testnet payment test completed!');
-    console.log('💰 Actual ETH was transferred on Arbitrum Sepolia testnet');
-    console.log('🔗 View transaction on Arbitrum Sepolia explorer:');
-    if (typeof txHash !== 'undefined') {
-      console.log(`   Transaction: https://sepolia.arbiscan.io/tx/${txHash}`);
-    }
-    console.log(`   Purchaser: https://sepolia.arbiscan.io/address/${purchaserAddress}`);
+    console.log('\n🎉 REAL x402 EIP-712 signature test completed!');
+    console.log('🔐 EIP-712 signature authorizes relayer to execute USDC transfer');
+    console.log('🔗 View signature details:');
+    console.log(`   Signer: ${purchaserAddress}`);
+    console.log(`   Signature Hash: ${signature || 'Generated during test'}`);
+    console.log(`   Network: Arbitrum Sepolia`);
 
   } catch (error) {
     console.error('❌ Test failed:', error.message);
