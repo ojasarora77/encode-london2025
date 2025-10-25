@@ -1,0 +1,9 @@
+name = "agent-registry-mcp"
+main = "src/index.js"
+compatibility_date = "2024-10-25"
+
+[vars]
+AGENT_REGISTRY_URL = "http://localhost:3001"
+
+[env.production]
+AGENT_REGISTRY_URL = "https://your-agent-registry.workers.dev"
