@@ -1,0 +1,13 @@
+{
+  "name": "email-classifier-agent",
+  "version": "1.0.0",
+  "description": "A2A Email Classification Agent using Llama 3.3 70B via Venice AI",
+  "main": "email-classifier-worker.js",
+  "scripts": {
+    "start": "wrangler dev --port 41248",
+    "dev": "wrangler dev --port 41248"
+  },
+  "dependencies": {
+    "wrangler": "^4.45.0"
+  }
+}

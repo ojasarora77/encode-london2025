@@ -1,0 +1,10 @@
+name = "content-generator-agent"
+main = "content-generator-worker.js"
+compatibility_date = "2024-10-25"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Environment variables will be set via .dev.vars
+
+[env.production]
+# Production environment settings

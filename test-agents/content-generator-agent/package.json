@@ -1,0 +1,13 @@
+{
+  "name": "content-generator-agent",
+  "version": "1.0.0",
+  "description": "A2A AI Content Generator Agent using Llama 3.3 70B via Venice AI",
+  "main": "content-generator-worker.js",
+  "scripts": {
+    "start": "wrangler dev --port 41246",
+    "dev": "wrangler dev --port 41246"
+  },
+  "dependencies": {
+    "wrangler": "^4.45.0"
+  }
+}
