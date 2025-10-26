@@ -46,7 +46,7 @@ export function getProviderAndSigner(accountIndex = 0) {
   const provider = new ethers.JsonRpcProvider(config.rpcUrl);
   
   // For local network, use test accounts
-  if (config.name === 'Anvil Local') {
+  if (!config.requiresPrivateKey) {
     const wallet = new ethers.Wallet(TEST_PRIVATE_KEYS[accountIndex], provider);
     return { provider, signer: wallet };
   }

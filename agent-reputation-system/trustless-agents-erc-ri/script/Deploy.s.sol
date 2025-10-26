@@ -5,6 +5,8 @@ import "forge-std/Script.sol";
 import "../src/IdentityRegistry.sol";
 import "../src/ReputationRegistry.sol";
 import "../src/ValidationRegistry.sol";
+import "../src/CompassToken.sol";
+import "../src/FeedbackAuthenticationDAO.sol";
 
 /**
  * @title Deploy
@@ -38,20 +40,42 @@ contract Deploy is Script {
         ValidationRegistry validationRegistry = new ValidationRegistry(address(identityRegistry));
         console.log("ValidationRegistry deployed at:", address(validationRegistry));
         
+        // 4. Deploy CompassToken (ERC-20 token for DAO)
+        console.log("Deploying CompassToken...");
+        uint256 initialTokenSupply = 1000000 * 10**18; // 1M tokens
+        CompassToken compassToken = new CompassToken(initialTokenSupply);
+        console.log("CompassToken deployed at:", address(compassToken));
+        
+        // 5. Deploy FeedbackAuthenticationDAO (depends on CompassToken and ReputationRegistry)
+        console.log("Deploying FeedbackAuthenticationDAO...");
+        uint256 initialTreasury = 500000 * 10**18; // 500K tokens for treasury
+        // Transfer treasury tokens from deployer to DAO contract
+        compassToken.transfer(address(this), initialTreasury);
+        FeedbackAuthenticationDAO dao = new FeedbackAuthenticationDAO(
+            address(compassToken),
+            address(reputationRegistry),
+            initialTreasury
+        );
+        console.log("FeedbackAuthenticationDAO deployed at:", address(dao));
+        
         vm.stopBroadcast();
         
         // Output deployment summary
-        console.log("\n=== ERC-8004 v1.0 Deployment Complete ===");
+        console.log("\n=== ERC-8004 v1.0 + DAO Deployment Complete ===");
         console.log("Network Chain ID:", block.chainid);
         console.log("Deployer:", vm.addr(deployerPrivateKey));
         console.log("\nContract Addresses:");
-        console.log("  IdentityRegistry:   ", address(identityRegistry));
-        console.log("  ReputationRegistry: ", address(reputationRegistry));
-        console.log("  ValidationRegistry: ", address(validationRegistry));
+        console.log("  IdentityRegistry:        ", address(identityRegistry));
+        console.log("  ReputationRegistry:      ", address(reputationRegistry));
+        console.log("  ValidationRegistry:      ", address(validationRegistry));
+        console.log("  CompassToken:            ", address(compassToken));
+        console.log("  FeedbackAuthenticationDAO:", address(dao));
         console.log("\nVerification Commands:");
         console.log("forge verify-contract <address> src/IdentityRegistry.sol:IdentityRegistry");
         console.log("forge verify-contract <address> src/ReputationRegistry.sol:ReputationRegistry --constructor-args <encoded>");
         console.log("forge verify-contract <address> src/ValidationRegistry.sol:ValidationRegistry --constructor-args <encoded>");
+        console.log("forge verify-contract <address> src/CompassToken.sol:CompassToken --constructor-args <encoded>");
+        console.log("forge verify-contract <address> src/FeedbackAuthenticationDAO.sol:FeedbackAuthenticationDAO --constructor-args <encoded>");
     }
 }
 
@@ -103,6 +127,36 @@ contract DeployValidationOnly is Script {
         
         ValidationRegistry validationRegistry = new ValidationRegistry(identityRegistryAddress);
         console.log("ValidationRegistry deployed at:", address(validationRegistry));
+        
+        vm.stopBroadcast();
+    }
+}
+
+/**
+ * @title DeployDAOOnly
+ * @dev Deploy only the DAO contracts (requires existing ReputationRegistry)
+ */
+contract DeployDAOOnly is Script {
+    function run() external {
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address reputationRegistryAddress = vm.envAddress("REPUTATION_REGISTRY");
+        
+        vm.startBroadcast(deployerPrivateKey);
+        
+        // Deploy CompassToken
+        uint256 initialTokenSupply = 1000000 * 10**18; // 1M tokens
+        CompassToken compassToken = new CompassToken(initialTokenSupply);
+        console.log("CompassToken deployed at:", address(compassToken));
+        
+        // Deploy FeedbackAuthenticationDAO
+        uint256 initialTreasury = 500000 * 10**18; // 500K tokens for treasury
+        compassToken.transfer(address(this), initialTreasury);
+        FeedbackAuthenticationDAO dao = new FeedbackAuthenticationDAO(
+            address(compassToken),
+            reputationRegistryAddress,
+            initialTreasury
+        );
+        console.log("FeedbackAuthenticationDAO deployed at:", address(dao));
         
         vm.stopBroadcast();
     }

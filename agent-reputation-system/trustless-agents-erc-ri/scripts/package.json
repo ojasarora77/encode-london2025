@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "deploy": "node deploy-contracts.js",
+    "deploy-dao": "node deploy-dao.js",
     "register": "node register-agents.js",
     "feedback": "node generate-feedback.js",
     "read": "node read-feedback.js",
+    "test-dao-integration": "node test-dao-integration.js",
+    "calculate-trust-score": "node calculate-trust-score.js",
+
     "setup": "node deploy-contracts.js && node register-agents.js && node generate-feedback.js"
   },
   "dependencies": {
