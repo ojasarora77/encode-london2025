@@ -1,6 +1,5 @@
 # CompassDAO: A Semantic Search Engine for ERC-8004 Agents
-Utize vectorised embeddings to simplify discovery of useful ERC-8004 Agents <br>
-ERC-8004 integrated agent feedback verification system using optimistic DAO staking & contesting system to further refine search results and ensure agents are trustworthy 
+CompassDAO is a semantic search engine designed specifically for discovering and evaluating ERC-8004 agents. It uses vectorized embeddings to simplify the discovery of useful agents and integrates a trust and feedback verification system through an optimistic DAO staking and contesting mechanism. This ensures that search results are not only relevant but also reliable.
 
 ## Architecture
 ### Search embedding creation
