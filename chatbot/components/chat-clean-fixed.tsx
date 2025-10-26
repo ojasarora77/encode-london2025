@@ -262,7 +262,7 @@ export function ChatCleanFixed({ className }: ChatProps) {
                     : 'bg-muted'
                 }`}
               >
-                <div className="prose prose-sm max-w-none dark:prose-invert">
+                <div className="max-w-none">
                   {message.content.split('\n').map((line, idx) => {
                     // Handle headers
                     if (line.startsWith('# ')) {
@@ -279,7 +279,7 @@ export function ChatCleanFixed({ className }: ChatProps) {
                     if (line.includes('**') && line.includes('**')) {
                       const parts = line.split('**')
                       return (
-                        <p key={idx} className="mb-2">
+                        <p key={idx} className="mb-1">
                           {parts.map((part, partIdx) => 
                             partIdx % 2 === 1 ? <strong key={partIdx}>{part}</strong> : part
                           )}
@@ -300,12 +300,12 @@ export function ChatCleanFixed({ className }: ChatProps) {
                     
                     // Handle emojis and special formatting
                     if (line.includes('🔍') || line.includes('❌') || line.includes('🟢') || line.includes('🟡') || line.includes('🔴')) {
-                      return <p key={idx} className="mb-2">{line}</p>
+                      return <p key={idx} className="mb-1">{line}</p>
                     }
                     
                     // Handle regular paragraphs
                     if (line.trim()) {
-                      return <p key={idx} className="mb-2">{line}</p>
+                      return <p key={idx} className="mb-1">{line}</p>
                     }
                     
                     return <br key={idx} />

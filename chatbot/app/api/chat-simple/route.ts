@@ -185,7 +185,12 @@ const systemPrompt = {
 When users ask for help with tasks, ALWAYS follow this workflow:
 1. Use the search_agents tool to find specialized agents that can help
 2. IMMEDIATELY use the execute_agent_task tool to delegate the task to the best agent found
-3. Present the agent's results to the user in a clear, organized way
+3. Format and present the agent's results to the user in a clear, organized way:
+   - Remove file wrappers (like "Generated 1 file(s):" and filename headers)
+   - Remove technical metadata (Status, Task ID, etc.)
+   - Extract and present only the actual content from the agent
+   - Clean up excessive spacing and formatting issues
+   - Present the content as if you wrote it directly to the user
 
 CRITICAL: When using search_agents, ALWAYS use broad, general search terms, not specific implementation details:
 
@@ -209,6 +214,10 @@ IMPORTANT: After finding agents, you MUST use execute_agent_task to actually sol
 When using execute_agent_task:
 - Use the full URL from the search results (e.g., "http://localhost:41242", not just "coder-agent-001")
 - The agent_url should be the complete URL, not just the agent ID
+
+EXAMPLE of proper agent response formatting:
+❌ BAD: "🤖 Agent Response\\n\\nGenerated 1 file(s):\\n\\ngenerated_code.js\\n\\nBubble Sort Algorithm...\\n\\n"
+✅ GOOD: "Here's a Python implementation of the bubble sort algorithm:\\n\\nCode:\\ndef bubble_sort(arr):\\n    # Implementation here\\n\\nThis algorithm works by..."
 
 Available tools:
 - search_agents: Find specialized AI agents for specific tasks
@@ -319,12 +328,12 @@ Only respond directly without using tools for general questions, greetings, or w
 **Description:** ${agent.description}
 **Capabilities:** ${capabilities}
 **Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})`
-                          }).join('\n\n---\n\n')
+                          }).join('\n\n')
                           
                           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
                             choices: [{
                               delta: { 
-                                content: `\n\n# 🔍 Agent Search Results\n\nFound **${searchResults.total}** agent(s) matching your query:\n\n${formattedResults}\n\n---\n\n*These agents are ready to help with your specific needs!*`
+                                content: `\n\n# 🔍 Agent Search Results\n\nFound **${searchResults.total}** agent(s) matching your query:\n\n${formattedResults}\n\n*These agents are ready to help with your specific needs!*`
                               }
                             }]
                           })}\n\n`))
@@ -364,12 +373,9 @@ Only respond directly without using tools for general questions, greetings, or w
                         
                         // Format agent response for display
                         const taskResult = agentResponse.data
-                        let formattedResult = `\n\n## Agent Task Result\n\n`
-                        formattedResult += `**Status:** ${taskResult.status}\n`
-                        formattedResult += `**Task ID:** \`${taskResult.id}\`\n\n`
+                        let formattedResult = `\n\n## 🤖 Agent Response\n\n`
                         
                         if (taskResult.result) {
-                          formattedResult += `**Result:**\n`
                           if (taskResult.result.files) {
                             formattedResult += `\nGenerated ${taskResult.result.files.length} file(s):\n\n`
                             taskResult.result.files.forEach((file: any) => {
