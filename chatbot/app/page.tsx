@@ -1,12 +1,77 @@
 
-import { ChatCleanFixed } from '@/components/chat-clean-fixed'
+'use client'
 
-export const runtime = 'edge'
+import FaultyTerminal from '@/components/FaultyTerminal'
+import ScrambledText from '@/components/ScrambledText'
+import Link from 'next/link'
 
 export default function IndexPage() {
   return (
-    <div className="flex flex-col h-full">
-      <ChatCleanFixed className="flex-1 min-h-0" />
+    <div className="relative w-full h-screen overflow-hidden bg-black">
+      <div className="absolute inset-0">
+        <FaultyTerminal
+          scale={3}
+          gridMul={[2, 1]}
+          digitSize={2.2}
+          timeScale={0.5}
+          pause={false}
+          scanlineIntensity={0.2}
+          glitchAmount={1}
+          flickerAmount={1}
+          noiseAmp={1}
+          chromaticAberration={0}
+          dither={0}
+          curvature={0.1}
+          tint="#00ff00"
+          mouseReact={true}
+          mouseStrength={0.9}
+          pageLoadAnimation={true}
+          brightness={0.4}
+        />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center justify-center h-full text-white px-6">
+        <ScrambledText
+          duration={1.2}
+          speed={0.5}
+          scrambleChars=".:/"
+          className="text-6xl font-bold mb-4 text-center"
+          trigger="auto"
+          autoInterval={5000}
+        >
+          CompassDAO
+        </ScrambledText>
+        <ScrambledText
+          radius={100}
+          duration={1.2}
+          speed={0.5}
+          scrambleChars=".:/"
+          className="text-xl mb-8 text-center"
+        >
+          AI agent semantic search engine with integrated x402 micropayments and ERC-8004 agent reputation protocol
+        </ScrambledText>
+
+        <div className="flex gap-4 flex-wrap justify-center">
+          <Link
+            href="/search"
+            className="px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+          >
+            Search Agents
+          </Link>
+          <Link
+            href="/chat"
+            className="px-6 py-3 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-black transition-colors"
+          >
+            Chat
+          </Link>
+          <Link
+            href="/docs"
+            className="px-6 py-3 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-black transition-colors"
+          >
+            Documentation
+          </Link>
+        </div>
+      </div>
     </div>
   )
 }
