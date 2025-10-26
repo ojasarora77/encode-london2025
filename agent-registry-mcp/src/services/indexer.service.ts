@@ -3,10 +3,16 @@ import { PineconeVectorService } from './vector.service';
 import { AgentCard, SearchFilters, SearchResponse } from '../types/agentcard.types';
 
 export class AgentIndexerService {
+  private embeddingService: IEmbeddingService;
+  private vectorService: PineconeVectorService;
+
   constructor(
-    private embeddingService: IEmbeddingService,
-    private vectorService: PineconeVectorService
-  ) {}
+    embeddingService: IEmbeddingService,
+    vectorService: PineconeVectorService
+  ) {
+    this.embeddingService = embeddingService;
+    this.vectorService = vectorService;
+  }
 
   /**
    * Index a single agent

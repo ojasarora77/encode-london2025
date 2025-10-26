@@ -1,5 +1,5 @@
 import { Pinecone } from '@pinecone-database/pinecone';
-import { SearchResult, SearchFilters } from '../types/agentcard.types';
+import { SearchResult, SearchFilters } from '../types/agentcard.types.js';
 
 export class PineconeVectorService {
   private pinecone: Pinecone;
