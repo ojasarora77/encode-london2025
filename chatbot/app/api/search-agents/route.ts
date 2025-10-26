@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export const runtime = 'edge'
+// Removed: export const runtime = 'edge' - using Node.js runtime instead
 
 // MCP call with payment handling for search page
 async function callMCPServer(toolName: string, args: any, signature?: string) {

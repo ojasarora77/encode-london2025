@@ -31,6 +31,7 @@ export interface SearchResult {
   score: number;
   capabilities?: string[];
   matchReasons?: string[];
+  erc8004Index?: number;
 }
 
 export interface SearchFilters {

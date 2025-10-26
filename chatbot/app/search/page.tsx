@@ -12,6 +12,7 @@ interface AgentResult {
   score: string
   capabilities: string[]
   skills: string[]
+  erc8004Index?: number
 }
 
 interface SearchResponse {
@@ -274,8 +275,15 @@ export default function SearchPage() {
                   </div>
                   
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-400">
-                      URL: <span className="text-green-300 font-mono">{result.url}</span>
+                    <div className="text-sm text-gray-400 space-y-1">
+                      <div>
+                        URL: <span className="text-green-300 font-mono">{result.url}</span>
+                      </div>
+                      {result.erc8004Index !== undefined && (
+                        <div>
+                          ERC8004 ID: <span className="text-blue-300 font-mono">#{result.erc8004Index}</span>
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => window.open(result.url, '_blank')}

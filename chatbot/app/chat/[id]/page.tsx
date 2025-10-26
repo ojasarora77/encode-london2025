@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 
 import { Chat } from '@/components/chat'
 
-export const runtime = 'edge'
+// Removed: export const runtime = 'edge' - using Node.js runtime instead
 export const preferredRegion = 'home'
 
 export interface ChatPageProps {

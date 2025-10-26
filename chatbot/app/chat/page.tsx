@@ -1,6 +1,6 @@
 import { ChatCleanFixed } from '@/components/chat-clean-fixed'
 
-export const runtime = 'edge'
+// Removed: export const runtime = 'edge' - using Node.js runtime instead
 
 export default function ChatPage() {
   return (

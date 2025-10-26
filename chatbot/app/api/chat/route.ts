@@ -1,7 +1,7 @@
 import { OpenAIStream, StreamingTextResponse } from 'ai'
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
+// Removed: export const runtime = 'edge' - using Node.js runtime instead
 
 const client = new OpenAI({
   apiKey: process.env.VENICE_API_KEY,
@@ -328,7 +328,8 @@ Please inform the user that:
             return `${idx + 1}. **${agent.name}** (ID: ${agent.agentId})
    - Description: ${agent.description}
    - Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
-   - Match Score: ${(agent.score * 100).toFixed(1)}%`
+   - Match Score: ${(agent.score * 100).toFixed(1)}%
+   ${agent.erc8004Index !== undefined ? `   - ERC8004 ID: #${agent.erc8004Index}` : ''}`
           }).join('\n\n')
           
           const systemMessage = `[TOOL EXECUTION COMPLETE]${paymentNote}

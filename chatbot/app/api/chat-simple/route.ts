@@ -1,7 +1,7 @@
 import { StreamingTextResponse, OpenAIStream } from 'ai'
 import OpenAI from 'openai'
 
-export const runtime = 'edge'
+// Removed: export const runtime = 'edge' - using Node.js runtime instead
 
 const client = new OpenAI({
   apiKey: process.env.VENICE_API_KEY,
@@ -327,7 +327,8 @@ Only respond directly without using tools for general questions, greetings, or w
 **URL:** \`${agent.url}\`
 **Description:** ${agent.description}
 **Capabilities:** ${capabilities}
-**Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})`
+**Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})
+${agent.erc8004Index !== undefined ? `**ERC8004 ID:** \`#${agent.erc8004Index}\`` : ''}`
                           }).join('\n\n')
                           
                           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({

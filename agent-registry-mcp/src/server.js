@@ -110,7 +110,8 @@ app.post('/mcp', async (req, res) => {
           url: agent.url || 'N/A',
           score: agent.score.toFixed(3),
           capabilities: agent.capabilities || [],
-          skills: agent.skills?.map(s => s.name) || []
+          skills: agent.skills?.map(s => s.name) || [],
+          erc8004Index: agent.erc8004Index
         }));
         
         const response = {
