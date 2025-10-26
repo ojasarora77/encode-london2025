@@ -1,0 +1,10 @@
+{
+  "identityRegistry": "0xCADe463a400c317EfcD7Ccfa4863C035c8529a6A",
+  "reputationRegistry": "0x88A06b876ce3CE78C159a0a1728328B4560c64eD",
+  "chainId": 421614,
+  "network": "Arbitrum Sepolia",
+  "deployedAt": "2025-10-26T08:31:08.709Z",
+  "compassToken": "0xEc47789FF245d1426b5e932f03ad208f403A24BB",
+  "feedbackAuthenticationDAO": "0xA8747A3f83aA48c2CD69B6A8A7A44EA641c508cD",
+  "daoDeployedAt": "2025-10-26T08:31:44.977Z"
+}

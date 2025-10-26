@@ -31,6 +31,10 @@ export function UniversalNavbar() {
       link: "/chat",
     },
     {
+      name: "DAO",
+      link: "/dao",
+    },
+    {
       name: "Docs",
       link: "/docs",
     },
