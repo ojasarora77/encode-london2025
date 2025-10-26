@@ -4,6 +4,16 @@ import { useState, useEffect } from 'react'
 import FaultyTerminal from '@/components/FaultyTerminal'
 import { usePaymentAuth } from '@/lib/hooks/use-payment-auth'
 
+interface TrustScore {
+  score: number
+  level: string
+  count: number
+  averageScore: number
+  lastUpdated: string
+  source: string
+  error?: string
+}
+
 interface AgentResult {
   rank: number
   name: string
@@ -13,6 +23,7 @@ interface AgentResult {
   capabilities: string[]
   skills: string[]
   erc8004Index?: number
+  trustScore?: TrustScore
 }
 
 interface SearchResponse {
@@ -282,6 +293,27 @@ export default function SearchPage() {
                       {result.erc8004Index !== undefined && (
                         <div>
                           ERC8004 ID: <span className="text-blue-300 font-mono">#{result.erc8004Index}</span>
+                        </div>
+                      )}
+                      {result.trustScore && (
+                        <div className="mt-2 p-2 bg-gray-800 rounded border-l-4 border-green-500">
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-400 font-semibold">Trust Score:</span>
+                            <span className="text-white font-mono">{(result.trustScore.score * 100).toFixed(1)}%</span>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              result.trustScore.level === 'Excellent' ? 'bg-green-900 text-green-300' :
+                              result.trustScore.level === 'Very High' ? 'bg-green-800 text-green-300' :
+                              result.trustScore.level === 'High' ? 'bg-blue-800 text-blue-300' :
+                              result.trustScore.level === 'Good' ? 'bg-yellow-800 text-yellow-300' :
+                              result.trustScore.level === 'Medium' ? 'bg-orange-800 text-orange-300' :
+                              'bg-red-800 text-red-300'
+                            }`}>
+                              {result.trustScore.level}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            Based on {result.trustScore.count} feedback entries • {result.trustScore.source}
+                          </div>
                         </div>
                       )}
                     </div>

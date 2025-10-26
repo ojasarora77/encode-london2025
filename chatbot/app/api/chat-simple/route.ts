@@ -328,7 +328,8 @@ Only respond directly without using tools for general questions, greetings, or w
 **Description:** ${agent.description}
 **Capabilities:** ${capabilities}
 **Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})
-${agent.erc8004Index !== undefined ? `**ERC8004 ID:** \`#${agent.erc8004Index}\`` : ''}`
+${agent.erc8004Index !== undefined ? `**ERC8004 ID:** \`#${agent.erc8004Index}\`` : ''}
+${agent.trustScore ? `**Trust Score:** ${(agent.trustScore.score * 100).toFixed(1)}% (${agent.trustScore.level}) - ${agent.trustScore.source}` : ''}`
                           }).join('\n\n')
                           
                           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({

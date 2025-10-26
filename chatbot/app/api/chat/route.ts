@@ -329,7 +329,8 @@ Please inform the user that:
    - Description: ${agent.description}
    - Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
    - Match Score: ${(agent.score * 100).toFixed(1)}%
-   ${agent.erc8004Index !== undefined ? `   - ERC8004 ID: #${agent.erc8004Index}` : ''}`
+   ${agent.erc8004Index !== undefined ? `   - ERC8004 ID: #${agent.erc8004Index}` : ''}
+   ${agent.trustScore ? `   - Trust Score: ${(agent.trustScore.score * 100).toFixed(1)}% (${agent.trustScore.level})` : ''}`
           }).join('\n\n')
           
           const systemMessage = `[TOOL EXECUTION COMPLETE]${paymentNote}

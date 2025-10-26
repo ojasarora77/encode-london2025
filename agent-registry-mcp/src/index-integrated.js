@@ -6,34 +6,162 @@ import { createPaidMcpHandler } from 'x402-mcp';
 import { createPublicClient, createWalletClient, http, recoverTypedDataAddress, parseUnits, formatUnits } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
+import { ethers } from 'ethers';
 
-// Function to get on-chain trust score for an ERC8004 ID
-async function getOnChainTrustScore(erc8004Index) {
-  // For now, we'll simulate trust scores based on the ERC8004 ID
-  // In a real implementation, this would query the ERC8004 contract on-chain
+// Function to get on-chain trust score for an ERC8004 ID using real ERC8004 contract
+async function getOnChainTrustScore(erc8004Index, config) {
+  try {
+    // Use environment variables for configuration
+    const rpcUrl = config.ARBITRUM_SEPOLIA_RPC_URL;
+    const contractAddress = config.REPUTATION_REGISTRY_ADDRESS;
+    
+    // Create provider using ethers.js (same as agent reputation system)
+    const provider = new ethers.JsonRpcProvider(rpcUrl);
+    
+    // Create contract instance with the exact ABI from agent reputation system
+    const reputationRegistry = new ethers.Contract(
+      contractAddress,
+      [
+        "function readAllFeedback(uint256 agentId, address[] calldata clientAddresses, bytes32 tag1, bytes32 tag2, bool includeRevoked) external view returns (address[] memory clients, uint8[] memory scores, bytes32[] memory tag1s, bytes32[] memory tag2s, bool[] memory revokedStatuses)"
+      ],
+      provider
+    );
+
+    console.log(`🔍 Querying real ERC8004 contract for agent ID: ${erc8004Index}`);
+    
+    // Call readAllFeedback to get all feedback data (same as agent reputation system)
+    const [clients, scores, tag1s, tag2s, revokedStatuses] = await reputationRegistry.readAllFeedback(
+      erc8004Index,
+      [], // all clients
+      ethers.ZeroHash, // no tag1 filter
+      ethers.ZeroHash, // no tag2 filter
+      false // exclude revoked feedback
+    );
+    
+    console.log(`📊 On-chain data: ${clients.length} feedback entries from ${new Set(clients).size} unique clients`);
+    
+    // Convert BigInt scores to numbers for calculations
+    const numericScores = scores.map(score => Number(score));
+    
+    // Calculate trust score using the same algorithm as the agent reputation system
+    const trustScore = calculateTrustScoreForAgent(clients, numericScores, revokedStatuses);
+    
+    // Determine trust level based on final score
+    let trustLevel;
+    if (trustScore.finalScore >= 0.9) trustLevel = 'Excellent';
+    else if (trustScore.finalScore >= 0.8) trustLevel = 'Very High';
+    else if (trustScore.finalScore >= 0.7) trustLevel = 'High';
+    else if (trustScore.finalScore >= 0.6) trustLevel = 'Good';
+    else if (trustScore.finalScore >= 0.5) trustLevel = 'Medium';
+    else trustLevel = 'Low';
+    
+    return {
+      score: trustScore.finalScore,
+      level: trustLevel,
+      count: trustScore.metrics.totalFeedback,
+      averageScore: Math.round(trustScore.metrics.averageScore),
+      lastUpdated: new Date().toISOString(),
+      source: 'ERC8004 on-chain registry (Arbitrum Sepolia)',
+      contractAddress: contractAddress,
+      network: 'Arbitrum Sepolia',
+      components: trustScore.components,
+      metrics: trustScore.metrics
+    };
+    
+  } catch (error) {
+    console.log(`❌ Real blockchain query failed: ${error.message}`);
+    throw error; // Don't fallback to mock data - use real blockchain or fail
+  }
+}
+
+// Trust score calculation algorithm from agent reputation system
+function calculateTrustScoreForAgent(clients, scores, revokedStatuses) {
+  // Filter out revoked feedback
+  const validIndices = [];
+  for (let i = 0; i < scores.length; i++) {
+    if (!revokedStatuses[i]) {
+      validIndices.push(i);
+    }
+  }
   
-  // Simulate different trust scores based on the ID
-  const trustScores = {
-    0: { score: 0.85, level: 'High' },
-    1: { score: 0.92, level: 'Very High' },
-    2: { score: 0.78, level: 'Good' },
-    3: { score: 0.65, level: 'Medium' },
-    4: { score: 0.88, level: 'High' },
-    5: { score: 0.73, level: 'Good' },
-    6: { score: 0.81, level: 'High' },
-    7: { score: 0.76, level: 'Good' },
-    8: { score: 0.89, level: 'High' },
-    9: { score: 0.82, level: 'High' }
-  };
+  // If no valid feedback, return zero trust score
+  if (validIndices.length === 0) {
+    return {
+      finalScore: 0,
+      components: {
+        averageScore: 0,
+        volumeScore: 0,
+        diversityScore: 0,
+        consistencyScore: 0
+      },
+      metrics: {
+        totalFeedback: 0,
+        uniqueReviewers: 0,
+        averageScore: 0,
+        standardDeviation: 0
+      }
+    };
+  }
   
-  const defaultScore = { score: 0.70, level: 'Good' };
-  const trustData = trustScores[erc8004Index] || defaultScore;
+  // Extract valid data
+  const validClients = validIndices.map(i => clients[i]);
+  const validScores = validIndices.map(i => scores[i]);
+  
+  // Calculate metrics
+  const totalFeedback = validScores.length;
+  const uniqueReviewers = new Set(validClients).size;
+  const averageScore = validScores.reduce((sum, score) => sum + score, 0) / totalFeedback;
+  const standardDeviation = calculateStandardDeviation(validScores);
+  
+  // Calculate trust score components
+  
+  // 1. Average Score Component (30% weight)
+  const averageScoreComponent = averageScore / 100;
+  
+  // 2. Feedback Volume Component (20% weight)
+  // Logarithmic scaling with diminishing returns
+  const volumeComponent = Math.min(1, Math.log10(totalFeedback + 1) / Math.log10(50));
+  
+  // 3. Reviewer Diversity Component (30% weight)
+  // Higher ratio of unique reviewers to total feedback = better
+  const diversityComponent = Math.min(1, uniqueReviewers / totalFeedback);
+  
+  // 4. Score Consistency Component (20% weight)
+  // Lower standard deviation = more consistent = higher trust
+  const consistencyComponent = Math.max(0, 1 - Math.min(1, standardDeviation / 50));
+  
+  // Calculate weighted final score
+  const finalScore = (
+    averageScoreComponent * 0.30 +
+    volumeComponent * 0.20 +
+    diversityComponent * 0.30 +
+    consistencyComponent * 0.20
+  );
   
   return {
-    ...trustData,
-    lastUpdated: new Date().toISOString(),
-    source: 'ERC8004 on-chain registry'
+    finalScore,
+    components: {
+      averageScore: averageScoreComponent,
+      volumeScore: volumeComponent,
+      diversityScore: diversityComponent,
+      consistencyScore: consistencyComponent
+    },
+    metrics: {
+      totalFeedback,
+      uniqueReviewers,
+      averageScore,
+      standardDeviation
+    }
   };
+}
+
+// Calculate standard deviation of an array of numbers
+function calculateStandardDeviation(scores) {
+  if (scores.length === 0) return 0;
+  
+  const mean = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+  const variance = scores.reduce((sum, score) => sum + Math.pow(score - mean, 2), 0) / scores.length;
+  return Math.sqrt(variance);
 }
 
 export default {
@@ -367,17 +495,34 @@ export default {
                 console.log('   ⚠️  No results found!');
               }
 
-              // Format results for MCP
-              const formattedResults = results.results.map((result) => ({
-                rank: result.rank,
-                agentId: result.agentId,
-                name: result.name,
-                description: result.description,
-                url: result.url,
-                score: result.score,
-                capabilities: result.capabilities || [],
-                matchReasons: result.matchReasons || [],
-                erc8004Index: result.erc8004Index
+              // Format results for MCP with trust scores
+              const formattedResults = await Promise.all(results.results.map(async (result) => {
+                let trustScore = null;
+                
+                // Only fetch trust score if we have an ERC8004 ID
+                if (result.erc8004Index !== undefined) {
+                  try {
+                    console.log(`🔍 Fetching trust score for agent ${result.name} (ERC8004 ID: ${result.erc8004Index})`);
+                    trustScore = await getOnChainTrustScore(result.erc8004Index, config);
+                    console.log(`✅ Trust score for ${result.name}: ${trustScore.score} (${trustScore.level})`);
+                  } catch (error) {
+                    console.log(`❌ Failed to fetch trust score for ${result.name}: ${error.message}`);
+                    // trustScore remains null if fetch fails
+                  }
+                }
+                
+                return {
+                  rank: result.rank,
+                  agentId: result.agentId,
+                  name: result.name,
+                  description: result.description,
+                  url: result.url,
+                  score: result.score,
+                  capabilities: result.capabilities || [],
+                  matchReasons: result.matchReasons || [],
+                  erc8004Index: result.erc8004Index,
+                  trustScore: trustScore
+                };
               }));
 
               const mcpResponse = {
@@ -446,17 +591,34 @@ export default {
               
               console.log(`✅ TEST: Found ${results.total} agents`);
               
-              // Format results for MCP
-              const formattedResults = results.results.map((result) => ({
-                rank: result.rank,
-                agentId: result.agentId,
-                name: result.name,
-                description: result.description,
-                url: result.url,
-                score: result.score,
-                capabilities: result.capabilities || [],
-                matchReasons: result.matchReasons || [],
-                erc8004Index: result.erc8004Index
+              // Format results for MCP with trust scores
+              const formattedResults = await Promise.all(results.results.map(async (result) => {
+                let trustScore = null;
+                
+                // Only fetch trust score if we have an ERC8004 ID
+                if (result.erc8004Index !== undefined) {
+                  try {
+                    console.log(`🔍 Fetching trust score for agent ${result.name} (ERC8004 ID: ${result.erc8004Index})`);
+                    trustScore = await getOnChainTrustScore(result.erc8004Index, config);
+                    console.log(`✅ Trust score for ${result.name}: ${trustScore.score} (${trustScore.level})`);
+                  } catch (error) {
+                    console.log(`❌ Failed to fetch trust score for ${result.name}: ${error.message}`);
+                    // trustScore remains null if fetch fails
+                  }
+                }
+                
+                return {
+                  rank: result.rank,
+                  agentId: result.agentId,
+                  name: result.name,
+                  description: result.description,
+                  url: result.url,
+                  score: result.score,
+                  capabilities: result.capabilities || [],
+                  matchReasons: result.matchReasons || [],
+                  erc8004Index: result.erc8004Index,
+                  trustScore: trustScore
+                };
               }));
               
               const mcpResponse = {
@@ -506,9 +668,8 @@ export default {
               
               console.log(`🔍 Getting trust score for ERC8004 ID: ${erc8004Index}`);
               
-              // For now, we'll simulate a trust score based on the ERC8004 ID
-              // In a real implementation, this would query the blockchain
-              const trustScore = await getOnChainTrustScore(erc8004Index);
+              // Query the real ERC8004 contract on Ethereum Sepolia
+              const trustScore = await getOnChainTrustScore(erc8004Index, config);
               
               const mcpResponse = {
                 jsonrpc: '2.0',
