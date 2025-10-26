@@ -83,6 +83,27 @@ app.post('/mcp', async (req, res) => {
                 required: ['query'],
               },
             },
+            {
+              name: 'test_search_agents',
+              description: 'TEST: Search the agent registry without payment requirement (for testing ERC8004 ID)',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: {
+                    type: 'string',
+                    description: 'Natural language description of what the user needs',
+                  },
+                  limit: {
+                    type: 'integer',
+                    description: 'Number of agent results to return (default: 3, max: 10)',
+                    default: 3,
+                    minimum: 1,
+                    maximum: 10,
+                  },
+                },
+                required: ['query'],
+              },
+            },
           ],
         },
       };
@@ -101,6 +122,49 @@ app.post('/mcp', async (req, res) => {
         const results = await indexerService.searchAgents(query, limit);
         
         console.log(`✅ Found ${results.total} agents`);
+        
+        // Format results
+        const formattedResults = results.results.map((agent, index) => ({
+          rank: index + 1,
+          name: agent.name,
+          description: agent.description,
+          url: agent.url || 'N/A',
+          score: agent.score.toFixed(3),
+          capabilities: agent.capabilities || [],
+          skills: agent.skills?.map(s => s.name) || [],
+          erc8004Index: agent.erc8004Index
+        }));
+        
+        const response = {
+          jsonrpc: '2.0',
+          id: body.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  query,
+                  results: formattedResults,
+                  total: results.total,
+                  timestamp: new Date().toISOString()
+                }, null, 2)
+              }
+            ]
+          }
+        };
+        
+        return res.json(response);
+      }
+      
+      if (name === 'test_search_agents') {
+        const { query, limit = 3 } = args;
+        
+        console.log(`🧪 TEST: Searching for agents: "${query}"`);
+        
+        // Perform search without payment requirement
+        const results = await indexerService.searchAgents(query, limit);
+        
+        console.log(`✅ TEST: Found ${results.total} agents`);
         
         // Format results
         const formattedResults = results.results.map((agent, index) => ({

@@ -75,17 +75,38 @@ export default {
                           },
                         },
                       },
-                    },
-                    required: ['query'],
+                },
+                required: ['query'],
+              },
+            },
+            {
+              name: 'test_search_agents',
+              description: 'TEST: Search the agent registry without payment requirement (for testing ERC8004 ID)',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  query: {
+                    type: 'string',
+                    description: 'Natural language description of needed capability',
+                  },
+                  limit: {
+                    type: 'integer',
+                    description: 'Number of results to return (default: 3, max: 10)',
+                    default: 3,
+                    minimum: 1,
+                    maximum: 10,
                   },
                 },
-              ],
+                required: ['query'],
+              },
             },
-          };
-          return new Response(JSON.stringify(response), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        }
+          ],
+        },
+      };
+      return new Response(JSON.stringify(response), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
         
         if (body.method === 'tools/call') {
           const { name, arguments: args } = body.params;
@@ -313,6 +334,7 @@ export default {
                 score: result.score,
                 capabilities: result.capabilities || [],
                 matchReasons: result.matchReasons || [],
+                erc8004Index: result.erc8004Index
               }));
 
               const mcpResponse = {
@@ -361,6 +383,71 @@ export default {
                 error: {
                   code: -32603,
                   message: `Error searching agents: ${error.message}`,
+                },
+              };
+              return new Response(JSON.stringify(errorResponse), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+              });
+            }
+          }
+
+          if (name === 'test_search_agents') {
+            try {
+              const { query, limit = 3 } = args;
+              
+              console.log(`🧪 TEST: Searching for agents: "${query}"`);
+              
+              // Perform search without payment requirement
+              const results = await indexerService.searchAgents(query, limit);
+              
+              console.log(`✅ TEST: Found ${results.total} agents`);
+              
+              // Format results for MCP
+              const formattedResults = results.results.map((result) => ({
+                rank: result.rank,
+                agentId: result.agentId,
+                name: result.name,
+                description: result.description,
+                url: result.url,
+                score: result.score,
+                capabilities: result.capabilities || [],
+                matchReasons: result.matchReasons || [],
+                erc8004Index: result.erc8004Index
+              }));
+              
+              const mcpResponse = {
+                jsonrpc: '2.0',
+                id: body.id,
+                result: {
+                  content: [
+                    {
+                      type: 'text',
+                      text: JSON.stringify({
+                        query: results.query,
+                        results: formattedResults,
+                        total: results.total,
+                        timestamp: results.timestamp
+                      }, null, 2),
+                    },
+                  ],
+                },
+              };
+              
+              console.log('✅ TEST search completed successfully');
+              console.log(`   Results: ${formattedResults.length} agents found`);
+              
+              return new Response(JSON.stringify(mcpResponse), {
+                headers: { 'Content-Type': 'application/json' }
+              });
+            } catch (error) {
+              console.log(`❌ TEST Search failed: ${error.message}`);
+              const errorResponse = {
+                jsonrpc: '2.0',
+                id: body.id,
+                error: {
+                  code: -32603,
+                  message: `Error in test search: ${error.message}`,
                 },
               };
               return new Response(JSON.stringify(errorResponse), {
