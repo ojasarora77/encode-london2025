@@ -1,22 +1,85 @@
 'use client'
 
-import { useState } from 'react'
-import { CollapsibleSidebar } from '@/components/ui/collapsible-sidebar'
+import { useState, useEffect } from 'react'
 import FaultyTerminal from '@/components/FaultyTerminal'
+import { usePaymentAuth } from '@/lib/hooks/use-payment-auth'
+
+interface AgentResult {
+  rank: number
+  name: string
+  description: string
+  url: string
+  score: string
+  capabilities: string[]
+  skills: string[]
+}
+
+interface SearchResponse {
+  success: boolean
+  results: AgentResult[]
+  total: number
+  query: string
+  timestamp: string
+  paymentProcessed?: boolean
+}
 
 export default function SearchPage() {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<AgentResult[]>([])
   const [loading, setLoading] = useState(false)
+  const [paymentRequired, setPaymentRequired] = useState(false)
+  const [paymentData, setPaymentData] = useState<any>(null)
+  
+  const { 
+    address,
+    connectWallet, 
+    generateSignature,
+    isConnecting
+  } = usePaymentAuth()
+  
+  const [signature, setSignature] = useState<string | null>(null)
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!query.trim()) return
 
     setLoading(true)
+    setPaymentRequired(false)
+    setResults([])
+    
     try {
-      // TODO: Connect to agent search API
-      setResults([])
+      const response = await fetch('/api/search-agents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(signature && { 'x-402-signature': signature })
+        },
+        body: JSON.stringify({
+          query: query.trim(),
+          limit: 5,
+          x402Signature: signature
+        })
+      })
+
+      if (response.status === 402) {
+        // Payment required
+        const errorData = await response.json()
+        setPaymentRequired(true)
+        setPaymentData(errorData.payment)
+        return
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Search failed:', errorData.error)
+        return
+      }
+
+      const data: SearchResponse = await response.json()
+      
+      if (data.success && data.results) {
+        setResults(data.results)
+      }
     } catch (error) {
       console.error('Search error:', error)
     } finally {
@@ -24,75 +87,82 @@ export default function SearchPage() {
     }
   }
 
-  const sidebarSections = [
-    {
-      heading: 'Search',
-      items: [
-        {
-          name: 'All Agents',
-          href: '#all',
-          icon: (
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-          )
-        },
-        {
-          name: 'Favourites',
-          href: '#favourites',
-          icon: (
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73z"/>
-            </svg>
-          )
-        },
-        {
-          name: 'Recent',
-          href: '#recent',
-          icon: (
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
-              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
-            </svg>
-          )
-        }
-      ]
-    },
-    {
-      heading: 'Categories',
-      items: [
-        {
-          name: 'Code Agents',
-          href: '#code',
-          icon: (
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M5.854 4.854a.5.5 0 1 0-.708-.708l-3.5 3.5a.5.5 0 0 0 0 .708l3.5 3.5a.5.5 0 0 0 .708-.708L2.707 8zm4.292 0a.5.5 0 0 1 .708-.708l3.5 3.5a.5.5 0 0 1 0 .708l-3.5 3.5a.5.5 0 0 1-.708-.708L13.293 8z"/>
-            </svg>
-          )
-        },
-        {
-          name: 'Translation',
-          href: '#translation',
-          icon: (
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M4.545 6.714 4.11 8H3l1.862-5h1.284L8 8H6.833l-.435-1.286zm1.634-.736L5.5 3.956h-.049l-.679 2.022z"/>
-              <path d="M0 2a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v3h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3H2a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zm7.138 9.995q.289.451.63.846c-.748.575-1.673 1.001-2.768 1.292.178.217.451.635.555.867 1.125-.359 2.08-.844 2.886-1.494.777.665 1.739 1.165 2.93 1.472.133-.254.414-.673.629-.89-1.125-.253-2.057-.694-2.82-1.284.681-.747 1.222-1.651 1.621-2.757H14V8h-3v1.047h.765c-.318.844-.74 1.546-1.272 2.13a6 6 0 0 1-.415-.492 2 2 0 0 1-.94.31"/>
-            </svg>
-          )
-        },
-        {
-          name: 'Support',
-          href: '#support',
-          icon: (
-            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-              <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286m1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94"/>
-            </svg>
-          )
-        }
-      ]
+  const handlePayment = async () => {
+    if (!address) {
+      console.log('🔗 Connecting wallet...')
+      await connectWallet()
+      return
     }
-  ]
+
+    if (!paymentData) return
+
+    try {
+      console.log('💰 Starting payment flow')
+      console.log('   Payment info:', paymentData)
+      
+      const newSignature = await generateSignature(paymentData)
+      console.log('✍️ Signature generated:', newSignature.slice(0, 20) + '...')
+
+      // Store the signature for the retry
+      setSignature(newSignature)
+      
+      // Close payment dialog
+      setPaymentRequired(false)
+      
+      // Retry search with signature - call the API directly instead of handleSearch
+      setTimeout(async () => {
+        try {
+          setLoading(true)
+          console.log('🔄 Retrying search with signature:', newSignature.slice(0, 20) + '...')
+          
+          const response = await fetch('/api/search-agents', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-402-signature': newSignature
+            },
+            body: JSON.stringify({
+              query: query.trim(),
+              limit: 5,
+              x402Signature: newSignature
+            })
+          })
+
+          console.log('📡 Retry response status:', response.status)
+          console.log('📡 Retry response headers:', Object.fromEntries(response.headers.entries()))
+
+          if (response.status === 402) {
+            // Still getting 402, something is wrong
+            console.error('Still getting 402 after payment')
+            const errorData = await response.json()
+            console.error('402 Error data:', errorData)
+            setLoading(false)
+            return
+          }
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            console.error('Search failed:', errorData.error)
+            setLoading(false)
+            return
+          }
+
+          const data: SearchResponse = await response.json()
+          
+          if (data.success && data.results) {
+            setResults(data.results)
+          }
+        } catch (error) {
+          console.error('Retry search error:', error)
+        } finally {
+          setLoading(false)
+        }
+      }, 1000)
+    } catch (error) {
+      console.error('Payment error:', error)
+    }
+  }
+
 
   return (
     <div className="min-h-screen pt-20 relative">
@@ -117,9 +187,7 @@ export default function SearchPage() {
           brightness={0.2}
         />
       </div>
-      <CollapsibleSidebar sections={sidebarSections} userName="Search" userRole="Find Agents" />
-
-      <div className="ml-[5.5rem] lg:ml-80 mr-3 transition-all duration-300 py-6 px-8 relative z-10">
+      <div className="w-full py-6 px-8 relative z-10">
         <div className="max-w-5xl mx-auto">
           <div className="content-card mb-8">
             <h1 className="text-4xl font-bold mb-6">Search Agents</h1>
@@ -144,18 +212,84 @@ export default function SearchPage() {
             </form>
           </div>
 
+          {/* Payment Required Dialog */}
+          {paymentRequired && paymentData && (
+            <div className="content-card mb-6 border-2 border-yellow-400 bg-yellow-400/10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-yellow-400">Payment Required</h3>
+                <div className="text-sm text-gray-400">
+                  {paymentData.amount} {paymentData.currency}
+                </div>
+              </div>
+              <p className="text-gray-300 mb-4">
+                {paymentData.description || 'Payment required to search agents'}
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handlePayment}
+                  disabled={isConnecting}
+                  className="px-4 py-2 bg-yellow-500 text-black font-semibold rounded-lg hover:bg-yellow-400 transition-colors disabled:opacity-50"
+                >
+                  {isConnecting ? 'Signing...' : address ? 'Pay & Search' : 'Connect Wallet & Pay'}
+                </button>
+                <button
+                  onClick={() => setPaymentRequired(false)}
+                  className="px-4 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-500 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             {results.length > 0 ? (
               results.map((result, idx) => (
                 <div key={idx} className="content-card">
-                  <h3 className="text-xl font-semibold mb-2 text-green-400">{result.name}</h3>
-                  <p className="text-gray-300">{result.description}</p>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold mb-2 text-green-400">{result.name}</h3>
+                      <p className="text-gray-300 mb-3">{result.description}</p>
+                    </div>
+                    <div className="text-right text-sm text-gray-400">
+                      <div className="text-green-400 font-semibold">Score: {result.score}</div>
+                      <div className="text-xs">Rank #{result.rank}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {result.capabilities?.slice(0, 3).map((capability, capIdx) => (
+                      <span
+                        key={capIdx}
+                        className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded"
+                      >
+                        {capability}
+                      </span>
+                    ))}
+                    {result.capabilities?.length > 3 && (
+                      <span className="px-2 py-1 bg-gray-500/20 text-gray-400 text-xs rounded">
+                        +{result.capabilities.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-400">
+                      URL: <span className="text-green-300 font-mono">{result.url}</span>
+                    </div>
+                    <button
+                      onClick={() => window.open(result.url, '_blank')}
+                      className="px-3 py-1 bg-green-500 text-black text-sm font-semibold rounded hover:bg-green-400 transition-colors"
+                    >
+                      Visit Agent
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
               <div className="content-card text-center">
                 <p className="text-gray-400">
-                  {query ? 'No results found' : 'Enter a query to search for agents'}
+                  {loading ? 'Searching...' : query ? 'No results found' : 'Enter a query to search for agents'}
                 </p>
               </div>
             )}
