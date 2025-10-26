@@ -107,12 +107,25 @@ export function saveDeployments(deployments) {
 }
 
 /**
- * Load agent mappings
+ * Load sample agents from agent-registry/data/sample-agents.json
+ */
+export function loadSampleAgents() {
+  const sampleAgentsPath = path.join('..', '..', '..', 'agent-registry', 'data', 'sample-agents.json');
+  if (!fs.existsSync(sampleAgentsPath)) {
+    throw new Error(`Sample agents file not found: ${sampleAgentsPath}`);
+  }
+  console.log(`📁 Loading sample agents from: ${sampleAgentsPath}`);
+  return JSON.parse(fs.readFileSync(sampleAgentsPath, 'utf8'));
+}
+
+/**
+ * Load agent mappings (deprecated - use loadSampleAgents instead)
  */
 export function loadAgentMappings() {
   if (!fs.existsSync(AGENT_MAPPINGS_FILE)) {
     throw new Error(`Agent mappings file not found: ${AGENT_MAPPINGS_FILE}. Run register-agents.js first.`);
   }
+  console.log(`📁 Loading agent mappings from: ${AGENT_MAPPINGS_FILE}`);
   return JSON.parse(fs.readFileSync(AGENT_MAPPINGS_FILE, 'utf8'));
 }
 

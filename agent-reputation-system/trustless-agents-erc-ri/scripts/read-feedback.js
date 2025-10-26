@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { 
   getProviderAndSigner, 
   loadDeployments, 
-  loadAgentMappings,
+  loadSampleAgents,
   getContracts,
   formatAddress,
   formatAgentSummary,
@@ -29,19 +29,42 @@ async function readFeedback() {
   console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}`);
   console.log(`   Network: ${deployments.network || config.name}\n`);
 
-  // Load agent mappings
-  const agentMappings = loadAgentMappings();
-  console.log(`📄 Loaded ${Object.keys(agentMappings).length} registered agents\n`);
+  // Load sample agents
+  const sampleAgents = loadSampleAgents();
+  console.log(`📄 Loaded ${sampleAgents.length} sample agents\n`);
 
   // Get provider and signer
   const { provider, signer } = getProviderAndSigner(0);
-  const { reputationRegistry } = getContracts(signer);
+  const { identityRegistry, reputationRegistry } = getContracts(signer);
 
   try {
-    // Read feedback summaries for each agent
-    for (const [agentName, agentData] of Object.entries(agentMappings)) {
-      const agentId = agentData.agentId;
-      console.log(`📈 ${agentName} (ID: ${agentId})`);
+    // Get all registered agents from the blockchain
+    const registeredAgents = [];
+    for (let agentId = 1; agentId <= sampleAgents.length; agentId++) {
+      try {
+        const owner = await identityRegistry.ownerOf(agentId);
+        if (owner && owner !== ethers.ZeroAddress) {
+          // Find the corresponding sample agent
+          const sampleAgent = sampleAgents[agentId - 1];
+          if (sampleAgent) {
+            registeredAgents.push({
+              ...sampleAgent,
+              agentId: agentId.toString(),
+              owner: owner
+            });
+          }
+        }
+      } catch (error) {
+        // Agent doesn't exist, continue
+      }
+    }
+
+    console.log(`📋 Found ${registeredAgents.length} registered agents on blockchain\n`);
+
+    // Read feedback summaries for each registered agent
+    for (const agentInfo of registeredAgents) {
+      const agentId = agentInfo.agentId;
+      console.log(`📈 ${agentInfo.name} (ID: ${agentId})`);
       
       try {
         // Get summary for all feedback (no filters)
@@ -88,8 +111,8 @@ async function readFeedback() {
     console.log('==================');
     
     // Display overall statistics
-    for (const [agentName, agentData] of Object.entries(agentMappings)) {
-      const agentId = agentData.agentId;
+    for (const agentInfo of registeredAgents) {
+      const agentId = agentInfo.agentId;
       try {
         const [count, averageScore] = await reputationRegistry.getSummary(
           agentId,
@@ -98,9 +121,9 @@ async function readFeedback() {
           ethers.ZeroHash
         );
         
-        console.log(formatAgentSummary(agentName, agentId, count, averageScore));
+        console.log(formatAgentSummary(agentInfo.name, agentId, count, averageScore));
       } catch (error) {
-        console.log(`${agentName} (ID: ${agentId}): Error reading feedback`);
+        console.log(`${agentInfo.name} (ID: ${agentId}): Error reading feedback`);
       }
     }
 

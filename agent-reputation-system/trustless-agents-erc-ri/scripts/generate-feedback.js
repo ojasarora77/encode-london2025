@@ -5,7 +5,7 @@ import {
   getProviderAndSigner, 
   getFeedbackProviderAndSigner,
   loadDeployments,
-  loadAgentMappings,
+  loadSampleAgents,
   saveFeedbackData,
   waitForTransaction,
   getContracts,
@@ -28,15 +28,15 @@ async function generateFeedback() {
   
   console.log(`💬 Starting feedback generation on ${config.name}...\n`);
   
-  // Load deployment addresses and agent mappings
+  // Load deployment addresses and sample agents
   const deployments = loadDeployments();
-  const agentMappings = loadAgentMappings();
+  const sampleAgents = loadSampleAgents();
   
   console.log(`📋 Using contracts:`);
   console.log(`   IdentityRegistry: ${formatAddress(deployments.identityRegistry)}`);
   console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}`);
   console.log(`   Network: ${deployments.network || config.name}`);
-  console.log(`📄 Loaded ${Object.keys(agentMappings).length} registered agents\n`);
+  console.log(`📄 Loaded ${sampleAgents.length} sample agents\n`);
   
   // Get provider and signer for agent operations
   const { provider, signer } = getProviderAndSigner(0);
@@ -49,9 +49,31 @@ async function generateFeedback() {
   let totalFeedback = 0;
   
   try {
-    for (const [agentId, agentInfo] of Object.entries(agentMappings)) {
+    // Get all registered agents from the blockchain
+    const registeredAgents = [];
+    for (let agentId = 1; agentId <= sampleAgents.length; agentId++) {
+      try {
+        const owner = await identityRegistry.ownerOf(agentId);
+        if (owner && owner !== ethers.ZeroAddress) {
+          // Find the corresponding sample agent
+          const sampleAgent = sampleAgents[agentId - 1];
+          if (sampleAgent) {
+            registeredAgents.push({
+              ...sampleAgent,
+              agentId: agentId.toString(),
+              owner: owner
+            });
+          }
+        }
+      } catch (error) {
+        // Agent doesn't exist, continue
+      }
+    }
 
-      console.log(`💭 Generating feedback for: ${agentInfo.name}`);
+    console.log(`📋 Found ${registeredAgents.length} registered agents on blockchain\n`);
+
+    for (const agentInfo of registeredAgents) {
+      console.log(`💭 Generating feedback for: ${agentInfo.name} (ID: ${agentInfo.agentId})`);
       
       feedbackData[agentInfo.agentId] = {
         agentName: agentInfo.name,
@@ -60,7 +82,6 @@ async function generateFeedback() {
       };
       
       // Get the correct agent owner based on agent ID
-      // Agents 1,3,5 were registered by account 0; agents 2,4 by account 1
       const agentOwnerIndex = (parseInt(agentInfo.agentId) - 1) % 2; // 0 for odd IDs, 1 for even IDs
       const { signer: agentOwnerSigner } = getProviderAndSigner(agentOwnerIndex);
       
@@ -133,8 +154,6 @@ async function generateFeedback() {
       }
       
       console.log(`   ✅ Generated ${feedbackData[agentInfo.agentId].feedback.length} feedback entries\n`);
-
-      
     }
     
     // Save feedback data
@@ -142,7 +161,7 @@ async function generateFeedback() {
     
     console.log(`🎉 Feedback generation completed!`);
     console.log(`📊 Summary:`);
-    console.log(`   Total agents: ${Object.keys(agentMappings).length}`);
+    console.log(`   Total registered agents: ${registeredAgents.length}`);
     console.log(`   Total feedback entries: ${totalFeedback}`);
     console.log(`\n💾 Feedback data saved to: feedback-data.json`);
     

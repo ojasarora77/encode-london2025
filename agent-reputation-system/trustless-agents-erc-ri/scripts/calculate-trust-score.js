@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 import { 
   getProviderAndSigner, 
   loadDeployments, 
-  loadAgentMappings,
+  loadSampleAgents,
   getContracts,
   formatAddress,
   formatAgentSummary
@@ -263,21 +263,44 @@ async function calculateTrustScores() {
   console.log(`   ReputationRegistry: ${formatAddress(deployments.reputationRegistry)}`);
   console.log(`   Network: ${deployments.network || config.name}\n`);
 
-  // Load agent mappings
-  const agentMappings = loadAgentMappings();
-  console.log(`📄 Loaded ${Object.keys(agentMappings).length} registered agents\n`);
+  // Load sample agents
+  const sampleAgents = loadSampleAgents();
+  console.log(`📄 Loaded ${sampleAgents.length} sample agents\n`);
 
   // Get provider and signer
   const { provider, signer } = getProviderAndSigner(0);
-  const { reputationRegistry } = getContracts(signer);
+  const { identityRegistry, reputationRegistry } = getContracts(signer);
 
   try {
+    // Get all registered agents from the blockchain
+    const registeredAgents = [];
+    for (let agentId = 1; agentId <= sampleAgents.length; agentId++) {
+      try {
+        const owner = await identityRegistry.ownerOf(agentId);
+        if (owner && owner !== ethers.ZeroAddress) {
+          // Find the corresponding sample agent
+          const sampleAgent = sampleAgents[agentId - 1];
+          if (sampleAgent) {
+            registeredAgents.push({
+              ...sampleAgent,
+              agentId: agentId.toString(),
+              owner: owner
+            });
+          }
+        }
+      } catch (error) {
+        // Agent doesn't exist, continue
+      }
+    }
+
+    console.log(`📋 Found ${registeredAgents.length} registered agents on blockchain\n`);
+
     const trustScoreResults = [];
     
-    // Calculate trust scores for each agent
-    for (const [agentName, agentData] of Object.entries(agentMappings)) {
-      const agentId = agentData.agentId;
-      console.log(`🔍 Calculating trust score for ${agentName} (ID: ${agentId})...`);
+    // Calculate trust scores for each registered agent
+    for (const agentInfo of registeredAgents) {
+      const agentId = agentInfo.agentId;
+      console.log(`🔍 Calculating trust score for ${agentInfo.name} (ID: ${agentId})...`);
       
       try {
         // Get all feedback data using centralized function
@@ -292,12 +315,12 @@ async function calculateTrustScores() {
         
         // Store result
         trustScoreResults.push({
-          agentName,
+          agentName: agentInfo.name,
           agentId,
           trustScore
         });
         
-        console.log(formatTrustScoreOutput(agentName, agentId, trustScore));
+        console.log(formatTrustScoreOutput(agentInfo.name, agentId, trustScore));
         console.log(''); // Empty line for readability
         
       } catch (error) {

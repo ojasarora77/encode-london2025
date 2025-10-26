@@ -4,7 +4,6 @@ import { ethers } from 'ethers';
 import { 
   getProviderAndSigner, 
   loadDeployments,
-  saveAgentMappings,
   waitForTransaction,
   getContracts,
   formatAddress
@@ -39,14 +38,13 @@ async function registerAgents() {
   
   console.log(`📄 Loaded ${sampleAgents.length} agents from sample-agents.json\n`);
   
-  const agentMappings = {};
+  const registeredAgents = [];
   let registeredCount = 0;
   
   try {
-    // Register only first 5 agents for testing
-    const agentsToRegister = sampleAgents.slice(0, 5);
-    for (let i = 0; i < agentsToRegister.length; i++) {
-      const agent = agentsToRegister[i];
+    // Register all agents from sample-agents.json
+    for (let i = 0; i < sampleAgents.length; i++) {
+      const agent = sampleAgents[i];
       console.log(`📝 Registering: ${agent.name}`);
       
       // Use different signer for each registration to avoid nonce conflicts
@@ -88,13 +86,11 @@ async function registerAgents() {
         const parsed = identityRegistry.interface.parseLog(registeredEvent);
         const agentId = parsed.args.agentId.toString();
         
-        agentMappings[agent.id] = {
+        registeredAgents.push({
+          ...agent,
           agentId: agentId,
-          name: agent.name,
-          provider: agent.provider,
-          version: agent.version,
           tokenURI: tokenURI
-        };
+        });
         
         console.log(`   ✅ Registered with ID: ${agentId}`);
         registeredCount++;
@@ -103,15 +99,12 @@ async function registerAgents() {
       }
     }
     
-    // Save agent mappings
-    saveAgentMappings(agentMappings);
-    
     console.log(`\n🎉 Registration completed!`);
     console.log(`📊 Summary:`);
     console.log(`   Total agents: ${sampleAgents.length}`);
     console.log(`   Successfully registered: ${registeredCount}`);
     console.log(`   Failed: ${sampleAgents.length - registeredCount}`);
-    console.log(`\n💾 Agent mappings saved to: agent-mappings.json`);
+    console.log(`\n📄 Using sample-agents.json as data source (no mappings file needed)`);
     
   } catch (error) {
     console.error('❌ Registration failed:', error);
