@@ -11,6 +11,20 @@ interface TrustScore {
   averageScore: number
   lastUpdated: string
   source: string
+  contractAddress?: string
+  network?: string
+  components?: {
+    averageScore: number
+    volumeScore: number
+    diversityScore: number
+    consistencyScore: number
+  }
+  metrics?: {
+    totalFeedback: number
+    uniqueReviewers: number
+    averageScore: number
+    standardDeviation: number
+  }
   error?: string
 }
 
@@ -296,10 +310,10 @@ export default function SearchPage() {
                         </div>
                       )}
                       {result.trustScore && (
-                        <div className="mt-2 p-2 bg-gray-800 rounded border-l-4 border-green-500">
-                          <div className="flex items-center gap-2">
-                            <span className="text-green-400 font-semibold">Trust Score:</span>
-                            <span className="text-white font-mono">{(result.trustScore.score * 100).toFixed(1)}%</span>
+                        <div className="mt-2 p-3 bg-gray-800 rounded border-l-4 border-green-500">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-green-400 font-semibold">🔗 On-Chain Trust Score:</span>
+                            <span className="text-white font-mono text-lg">{(result.trustScore.score * 100).toFixed(1)}%</span>
                             <span className={`px-2 py-1 rounded text-xs font-medium ${
                               result.trustScore.level === 'Excellent' ? 'bg-green-900 text-green-300' :
                               result.trustScore.level === 'Very High' ? 'bg-green-800 text-green-300' :
@@ -311,9 +325,37 @@ export default function SearchPage() {
                               {result.trustScore.level}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-400 mt-1">
-                            Based on {result.trustScore.count} feedback entries • {result.trustScore.source}
+                          
+                          <div className="text-xs text-gray-400 mb-2">
+                            📊 {result.trustScore.count} feedback entries from {result.trustScore.metrics?.uniqueReviewers || 0} reviewers • {result.trustScore.source}
                           </div>
+                          
+                          {result.trustScore.components && (
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="bg-gray-700 p-2 rounded">
+                                <div className="text-blue-300">Average Score</div>
+                                <div className="text-white font-mono">{(result.trustScore.components.averageScore * 100).toFixed(1)}%</div>
+                              </div>
+                              <div className="bg-gray-700 p-2 rounded">
+                                <div className="text-purple-300">Volume</div>
+                                <div className="text-white font-mono">{(result.trustScore.components.volumeScore * 100).toFixed(1)}%</div>
+                              </div>
+                              <div className="bg-gray-700 p-2 rounded">
+                                <div className="text-green-300">Diversity</div>
+                                <div className="text-white font-mono">{(result.trustScore.components.diversityScore * 100).toFixed(1)}%</div>
+                              </div>
+                              <div className="bg-gray-700 p-2 rounded">
+                                <div className="text-yellow-300">Consistency</div>
+                                <div className="text-white font-mono">{(result.trustScore.components.consistencyScore * 100).toFixed(1)}%</div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {result.trustScore.contractAddress && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              🔗 Contract: {result.trustScore.contractAddress.slice(0, 10)}...{result.trustScore.contractAddress.slice(-8)} • {result.trustScore.network}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

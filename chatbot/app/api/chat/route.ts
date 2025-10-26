@@ -330,7 +330,7 @@ Please inform the user that:
    - Capabilities: ${agent.capabilities?.join(', ') || 'General assistance'}
    - Match Score: ${(agent.score * 100).toFixed(1)}%
    ${agent.erc8004Index !== undefined ? `   - ERC8004 ID: #${agent.erc8004Index}` : ''}
-   ${agent.trustScore ? `   - Trust Score: ${(agent.trustScore.score * 100).toFixed(1)}% (${agent.trustScore.level})` : ''}`
+   ${agent.trustScore ? `   - 🔗 On-Chain Trust: ${(agent.trustScore.score * 100).toFixed(1)}% (${agent.trustScore.level}) - ${agent.trustScore.count} entries from ${agent.trustScore.metrics?.uniqueReviewers || 0} reviewers` : ''}`
           }).join('\n\n')
           
           const systemMessage = `[TOOL EXECUTION COMPLETE]${paymentNote}

@@ -329,7 +329,10 @@ Only respond directly without using tools for general questions, greetings, or w
 **Capabilities:** ${capabilities}
 **Match Score:** ${scoreColor} ${(agent.score * 100).toFixed(1)}% (${scoreText})
 ${agent.erc8004Index !== undefined ? `**ERC8004 ID:** \`#${agent.erc8004Index}\`` : ''}
-${agent.trustScore ? `**Trust Score:** ${(agent.trustScore.score * 100).toFixed(1)}% (${agent.trustScore.level}) - ${agent.trustScore.source}` : ''}`
+${agent.trustScore ? `**🔗 On-Chain Trust Score:** ${(agent.trustScore.score * 100).toFixed(1)}% (${agent.trustScore.level})
+   📊 Based on ${agent.trustScore.count} feedback entries from ${agent.trustScore.metrics?.uniqueReviewers || 0} reviewers
+   🏗️ Contract: ${agent.trustScore.contractAddress?.slice(0, 10)}...${agent.trustScore.contractAddress?.slice(-8)} • ${agent.trustScore.network}
+   📈 Components: Avg ${(agent.trustScore.components?.averageScore * 100).toFixed(1)}% | Vol ${(agent.trustScore.components?.volumeScore * 100).toFixed(1)}% | Div ${(agent.trustScore.components?.diversityScore * 100).toFixed(1)}% | Con ${(agent.trustScore.components?.consistencyScore * 100).toFixed(1)}%` : ''}`
                           }).join('\n\n')
                           
                           controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({
