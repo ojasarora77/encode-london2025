@@ -125,7 +125,8 @@ export class PineconeVectorService {
         url: match.metadata?.url as string,
         score: match.score ?? 0,
         capabilities: match.metadata?.capabilities as string[],
-        matchReasons: this.generateMatchReasons(match)
+        matchReasons: this.generateMatchReasons(match),
+        erc8004Index: match.metadata?.address as number
       })) || [];
   }
 
