@@ -19,6 +19,7 @@
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tooltip": "^1.0.6",
     "@rapidfire/id": "^0.0.125",
+    "@wagmi/core": "^2.22.1",
     "ai": "^2.1.6",
     "class-variance-authority": "^0.6.1",
     "clsx": "^1.2.1",
