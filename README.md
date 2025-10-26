@@ -1,4 +1,4 @@
-# CompassDAO: ERC-8004 Agent Semantic Search Engine
+# CompassDAO: A Semantic Search Engine for ERC-8004 Agents
 Utize vectorised embeddings to simplify discovery of useful ERC-8004 Agents <br>
 ERC-8004 integrated agent feedback verification system using optimistic DAO staking & contesting system to further refine search results and ensure agents are trustworthy 
 
