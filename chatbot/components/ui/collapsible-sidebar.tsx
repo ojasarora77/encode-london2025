@@ -7,6 +7,7 @@ interface SidebarItem {
   name: string
   href: string
   icon: React.ReactNode
+  onClick?: () => void
 }
 
 interface SidebarSection {
@@ -77,25 +78,47 @@ export function CollapsibleSidebar({ sections, logo, userName, userRole }: Colla
               )}
               {section.items.map((item, itemIdx) => (
                 <li key={itemIdx} className="h-12 rounded-lg">
-                  <Link
-                    href={item.href}
-                    className="flex items-center gap-3 h-full px-3 rounded-lg hover:bg-green-400/10 border border-transparent hover:border-green-400/30 transition-all duration-200 group relative"
-                    title={!isExpanded ? item.name : undefined}
-                  >
-                    <span className="flex items-center justify-center w-6 h-6 text-gray-400 group-hover:text-green-400 transition-colors duration-200">
-                      {item.icon}
-                    </span>
-                    {isExpanded && (
-                      <span className="text-base font-medium text-gray-300 group-hover:text-green-400 transition-colors duration-200">
-                        {item.name}
+                  {item.onClick ? (
+                    <button
+                      onClick={item.onClick}
+                      className="flex items-center gap-3 h-full px-3 rounded-lg hover:bg-green-400/10 border border-transparent hover:border-green-400/30 transition-all duration-200 group relative w-full text-left"
+                      title={!isExpanded ? item.name : undefined}
+                    >
+                      <span className="flex items-center justify-center w-6 h-6 text-gray-400 group-hover:text-green-400 transition-colors duration-200">
+                        {item.icon}
                       </span>
-                    )}
-                    {!isExpanded && (
-                      <span className="absolute left-20 bg-black/90 border border-green-400/30 text-green-400 text-sm font-medium px-3 py-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-50">
-                        {item.name}
+                      {isExpanded && (
+                        <span className="text-base font-medium text-gray-300 group-hover:text-green-400 transition-colors duration-200">
+                          {item.name}
+                        </span>
+                      )}
+                      {!isExpanded && (
+                        <span className="absolute left-20 bg-black/90 border border-green-400/30 text-green-400 text-sm font-medium px-3 py-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-50">
+                          {item.name}
+                        </span>
+                      )}
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="flex items-center gap-3 h-full px-3 rounded-lg hover:bg-green-400/10 border border-transparent hover:border-green-400/30 transition-all duration-200 group relative"
+                      title={!isExpanded ? item.name : undefined}
+                    >
+                      <span className="flex items-center justify-center w-6 h-6 text-gray-400 group-hover:text-green-400 transition-colors duration-200">
+                        {item.icon}
                       </span>
-                    )}
-                  </Link>
+                      {isExpanded && (
+                        <span className="text-base font-medium text-gray-300 group-hover:text-green-400 transition-colors duration-200">
+                          {item.name}
+                        </span>
+                      )}
+                      {!isExpanded && (
+                        <span className="absolute left-20 bg-black/90 border border-green-400/30 text-green-400 text-sm font-medium px-3 py-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-lg z-50">
+                          {item.name}
+                        </span>
+                      )}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
