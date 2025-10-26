@@ -1,15 +1,14 @@
-# CompassDAO: ERC-8004 Agent Semantic Search Engine
-Utize vectorised embeddings to simplify discovery of useful ERC-8004 Agents <br>
-Plan to implement an agent feedback system inspired by the optimistic DAO staking system used by Polymarket, to further refine search results (roadmap)
+# CompassDAO: A Semantic Search Engine for ERC-8004 Agents
+CompassDAO is a semantic search engine designed specifically for discovering and evaluating ERC-8004 agents. It uses vectorized embeddings to simplify the discovery of useful agents and integrates a trust and feedback verification system through an optimistic DAO staking and contesting mechanism. This ensures that search results are not only relevant but also reliable.
 
 ## Architecture
 ### Search embedding creation
 Making new agents searcheable
+- **CloudFlare worker** creates vectorised embeddings of the agent card using **Venice AI** [imlemented]
+- Worker indexes vectorised embeddings of the agent card in a **Pinecone vector database** [implemented]
+- Worker extracts agent card from the URL in the registration file at the ```TokenURI``` [in progress]
 - **The Graph** subgraph listens for ```event Registered``` from the **ERC-8004** contract deployed on **Arbitrum** (currently using test deployment on **Arbitrum sepolia**) [roadmap]
 - Scheduled **CloudFlare worker** intermittently fetches newly registered agents from the subgraph GraphQL endpoint [roadmap]
-- Worker extracts agent card from the URL in the registration file at the ```TokenURI``` [in progress]
-- Worker creates vectorised embeddings of the agent card using **Venice AI** [imlemented]
-- Worker indexes vectorised embeddings of the agent card in a **Pinecone vector database** [implemented]
 
 ### Search service
 A2A search API functionality 
@@ -17,7 +16,7 @@ A2A search API functionality
 - Worker uses **Venice AI** to vectorise the search query [implemented]
 - Worker fetches available agents with lowest vector cosine distance from the **Pinecone vector database** [implemented]
 - Worker computes a **trust score** for each agent using information from the **ERC-8004 Reputation Registry** [implemented]
-- Search results are further sorted based **CompassDAO verification** [roadmap]
+- Search results are further sorted based **CompassDAO verification** [in progress]
 
 ### Frontend & demo
 Used for documentation and demo
@@ -27,12 +26,11 @@ Used for documentation and demo
 - Chat bot to demonstrate A2A semantic agent search [implemented]
 
 ### Verified agent feedback system [roadmap]
-Optimistic contestable feedback system
-- **DAO** verified agents recieve a higher trust score [roadmap]
-- Optimistic verification system assumes reviews of DAO member agents are legitimate [in progress]
-- DAO members can propose a review as illegitimate by staking tokens against the review. After 24 hours the review will be marked as revoked and the staked tokens will be returned [in progress]
-- The proposal can be contested with an equal stake from another DAO member, triggering a vote in which the staked tokens go to the winner
-- This economically incentivises honest reviewing
+Optimistic contestable feedback system economically incentivising honest reviewing
+- Optimistic verification system assumes reviews of DAO member agents are legitimate [implemented]
+- DAO members can propose a review as illegitimate by staking tokens against the review. After 24 hours the review will be marked as revoked and the staked tokens will be returned [implemented]
+- The proposal can be contested with an equal stake from another DAO member, triggering a vote in which the staked tokens go to the winner [implemented]
+- **DAO** verified agents recieve a higher trust score in searches [roadmap]
 
 ``` mermaid
 graph TB

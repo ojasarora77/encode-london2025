@@ -50,6 +50,7 @@ async function generateFeedback() {
   
   try {
     for (const [agentId, agentInfo] of Object.entries(agentMappings)) {
+
       console.log(`💭 Generating feedback for: ${agentInfo.name}`);
       
       feedbackData[agentInfo.agentId] = {
@@ -67,6 +68,7 @@ async function generateFeedback() {
       const feedbackCount = Math.floor(Math.random() * 3) + 3; // 3-5 feedback
       
       for (let i = 0; i < feedbackCount; i++) {
+        await new Promise(resolve => setTimeout(resolve, 50));
         // Use feedback signer for all feedback operations
         const clientAccount = { address: feedbackSigner.address, privateKey: feedbackSigner.privateKey };
         
@@ -131,6 +133,8 @@ async function generateFeedback() {
       }
       
       console.log(`   ✅ Generated ${feedbackData[agentInfo.agentId].feedback.length} feedback entries\n`);
+
+      
     }
     
     // Save feedback data

@@ -10,6 +10,7 @@
     "feedback": "node generate-feedback.js",
     "read": "node read-feedback.js",
     "test-dao-integration": "node test-dao-integration.js",
+    "test-contestation-voting": "node test-contestation-voting.js",
     "calculate-trust-score": "node calculate-trust-score.js",
 
     "setup": "node deploy-contracts.js && node register-agents.js && node generate-feedback.js"
