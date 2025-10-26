@@ -1,0 +1,122 @@
+graph TB
+    %% Define styles
+    classDef implemented fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef roadmap fill:#fff3e0,stroke:#e65100,stroke-width:2px,stroke-dasharray: 5 5
+    classDef arbitrum fill:#bbdefb,stroke:#1976d2,stroke-width:3px
+    classDef x402 fill:#c8e6c9,stroke:#388e3c,stroke-width:3px
+    classDef a2a fill:#ffe0b2,stroke:#f57c00,stroke-width:3px
+
+    %% User Interface Layer
+    subgraph UILayer["👤 User Interface"]
+        User["User"]
+        MetaMask["MetaMask<br/>(Wallet)"]
+        FrontendApp["Frontend App<br/>(React/Next.js)"]
+    end
+
+    %% A2A Search Flow
+    subgraph A2ASearch["🤖 Agent-to-Agent Search"]
+        ChatbotAPI["Chatbot API<br/>(/api/chat)"]
+        MCPClient["MCP Client<br/>(x402 Integration)"]
+        MCPWorker["MCP Worker<br/>(index-integrated.js)"]
+    end
+
+    %% x402 Payment Flow
+    subgraph PaymentFlow["💳 x402 Payment Flow"]
+        PaymentRequired["402 Payment Required"]
+        EIP712Signature["EIP-712 Signature"]
+        USDCTx["USDC Transfer<br/>(Arbitrum Sepolia)"]
+        PaymentVerified["Payment Verified"]
+    end
+
+    %% Search Processing
+    subgraph SearchProcessing["🔍 Search Processing"]
+        QueryVectorization["Query Vectorization<br/>(Venice AI)"]
+        VectorSearch["Vector Search<br/>(Pinecone)"]
+        TrustCalculation["Trust Score Calculation"]
+        ResultRanking["Result Ranking"]
+    end
+
+    %% AI Services
+    subgraph AIServices["🧠 AI Services"]
+        VeniceEmbedding["Venice AI<br/>(text-embedding-bge-m3)"]
+        PineconeDB["Pinecone Vector DB"]
+    end
+
+    %% Blockchain Contracts
+    subgraph BlockchainContracts["⛓️ Arbitrum Contracts"]
+        IdentityRegistry["ERC-8004 Identity Registry<br/>(NFT-based)"]
+        ReputationRegistry["ERC-8004 Reputation Registry<br/>(Feedback System)"]
+        AgentRegistry["AgentRegistry<br/>(Local Reputation)"]
+        FeedbackMarket["FeedbackMarket<br/>(DAO Staking)"]
+        GovernanceToken["AGTC Token<br/>(Governance)"]
+    end
+
+    %% Indexing Pipeline
+    subgraph IndexingPipeline["📊 Indexing Pipeline"]
+        GraphSubgraph["The Graph Subgraph<br/>(Event Listener)"]
+        WorkerScheduler["Cloudflare Worker<br/>(Scheduler)"]
+        AgentCardExtractor["Agent Card Extractor<br/>(TokenURI → JSON)"]
+        BatchEmbedding["Batch Embedding<br/>(Venice AI)"]
+        VectorIndexing["Vector Indexing<br/>(Pinecone)"]
+    end
+
+    %% Trust Score Components
+    subgraph TrustComponents["📈 Trust Score Components"]
+        IdentityVerification["Identity Verification<br/>(ERC-8004)"]
+        EconomicBacking["Economic Backing<br/>(Stake Amount)"]
+        DAOVerification["DAO Verification<br/>(Contested Reviews)"]
+        ReviewDiversity["Review Diversity<br/>(Unique Reviewers)"]
+    end
+
+    %% Data Flows - User to Search
+    User --> FrontendApp
+    FrontendApp --> ChatbotAPI
+    ChatbotAPI --> MCPClient
+    MCPClient --> MCPWorker
+
+    %% x402 Payment Flow
+    MCPWorker --> PaymentRequired
+    PaymentRequired --> MetaMask
+    MetaMask --> EIP712Signature
+    EIP712Signature --> USDCTx
+    USDCTx --> PaymentVerified
+    PaymentVerified --> MCPWorker
+
+    %% Search Processing Flow
+    MCPWorker --> QueryVectorization
+    QueryVectorization --> VeniceEmbedding
+    MCPWorker --> VectorSearch
+    VectorSearch --> PineconeDB
+    MCPWorker --> TrustCalculation
+    TrustCalculation --> IdentityVerification
+    TrustCalculation --> EconomicBacking
+    TrustCalculation --> DAOVerification
+    TrustCalculation --> ReviewDiversity
+    TrustCalculation --> ResultRanking
+
+    %% Blockchain Integration
+    IdentityRegistry --> IdentityVerification
+    ReputationRegistry --> EconomicBacking
+    FeedbackMarket --> DAOVerification
+    AgentRegistry --> TrustCalculation
+
+    %% Indexing Flow
+    IdentityRegistry --> GraphSubgraph
+    GraphSubgraph --> WorkerScheduler
+    WorkerScheduler --> AgentCardExtractor
+    AgentCardExtractor --> BatchEmbedding
+    BatchEmbedding --> VeniceEmbedding
+    BatchEmbedding --> VectorIndexing
+    VectorIndexing --> PineconeDB
+
+    %% DAO Feedback System
+    FeedbackMarket --> GovernanceToken
+    FeedbackMarket --> AgentRegistry
+    FeedbackMarket --> ReputationRegistry
+
+    %% Apply styles
+    class FrontendApp,ChatbotAPI,MCPClient,MCPWorker,QueryVectorization,VectorSearch,TrustCalculation,ResultRanking,AgentCardExtractor,BatchEmbedding,VectorIndexing,VeniceEmbedding,PineconeDB implemented
+    class GraphSubgraph,WorkerScheduler,FeedbackMarket,GovernanceToken roadmap
+    class IdentityRegistry,ReputationRegistry,AgentRegistry,FeedbackMarket,GovernanceToken,USDCTx arbitrum
+    class PaymentRequired,EIP712Signature,USDCTx,PaymentVerified x402
+    class ChatbotAPI,MCPClient,MCPWorker a2a
