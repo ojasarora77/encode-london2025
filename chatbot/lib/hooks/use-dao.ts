@@ -1,6 +1,6 @@
 'use client';
 
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
 import { COMPASS_TOKEN_CONFIG, FEEDBACK_AUTHENTICATION_DAO_CONFIG, AuthenticationStatus, VoteChoice } from '@/lib/contracts/dao-contracts';
 import { useState, useCallback } from 'react';
 import toast from 'react-hot-toast';
@@ -27,6 +27,7 @@ export interface PendingAuthentication {
 
 export function useDAO() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
   const [isJoining, setIsJoining] = useState(false);
   const [devMode, setDevMode] = useState(false);
   
@@ -41,6 +42,7 @@ export function useDAO() {
     ...FEEDBACK_AUTHENTICATION_DAO_CONFIG,
     functionName: 'isMember',
     args: effectiveAddress ? [effectiveAddress] : undefined,
+    chainId: 421614, // Arbitrum Sepolia
     query: {
       enabled: !!effectiveAddress,
     },
@@ -49,17 +51,20 @@ export function useDAO() {
   const { data: memberCount, isLoading: isMemberCountLoading } = useReadContract({
     ...FEEDBACK_AUTHENTICATION_DAO_CONFIG,
     functionName: 'getMemberCount',
+    chainId: 421614, // Arbitrum Sepolia
   });
 
   const { data: treasuryBalance, isLoading: isTreasuryLoading } = useReadContract({
     ...FEEDBACK_AUTHENTICATION_DAO_CONFIG,
     functionName: 'getTreasuryBalance',
+    chainId: 421614, // Arbitrum Sepolia
   });
 
   const { data: compassBalance, isLoading: isCompassLoading } = useReadContract({
     ...COMPASS_TOKEN_CONFIG,
     functionName: 'balanceOf',
     args: effectiveAddress ? [effectiveAddress] : undefined,
+    chainId: 421614, // Arbitrum Sepolia
     query: {
       enabled: !!effectiveAddress,
     },
@@ -98,6 +103,7 @@ export function useDAO() {
       await writeContractDAO({
         ...FEEDBACK_AUTHENTICATION_DAO_CONFIG,
         functionName: 'joinDAO',
+        chainId: 421614, // Arbitrum Sepolia
       });
 
       toast.success('Transaction submitted! Waiting for confirmation...', { id: 'join-dao' });
@@ -155,6 +161,7 @@ export function useDAO() {
     daoStatus,
     isConnected: effectiveIsConnected,
     address: effectiveAddress,
+    chainId: isDevConnected ? 421614 : chainId, // Simulate Arbitrum Sepolia in dev mode
     
     // Development mode
     devMode,

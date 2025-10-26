@@ -4,7 +4,7 @@ import { injected, metaMask, walletConnect } from 'wagmi/connectors'
 
 // Create a simple config with minimal setup
 export const config = createConfig({
-  chains: [arbitrum, arbitrumSepolia, sepolia, mainnet],
+  chains: [arbitrumSepolia, arbitrum, sepolia, mainnet], // Arbitrum Sepolia first (default)
   connectors: [
     injected(),
     metaMask(),

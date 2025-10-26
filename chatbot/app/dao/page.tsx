@@ -14,6 +14,7 @@ export default function DAOPage() {
     daoStatus,
     isConnected,
     address,
+    chainId,
     devMode,
     setDevMode,
     isDevConnected,
@@ -118,6 +119,11 @@ export default function DAOPage() {
               <p className="text-gray-300 mb-4">
                 Please connect your wallet to view your DAO status and participate in governance.
               </p>
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3 mb-4">
+                <p className="text-blue-400 text-sm font-medium mb-1">Required Network</p>
+                <p className="text-blue-300 text-sm">Arbitrum Sepolia (Chain ID: 421614)</p>
+                <p className="text-blue-200 text-xs mt-1">Make sure your wallet is connected to the correct network</p>
+              </div>
               <p className="text-sm text-gray-400 mb-4">
                 Note: Wallet connection may not work in localhost development environment.
               </p>
@@ -160,6 +166,39 @@ export default function DAOPage() {
             </div>
           ) : (
             <>
+              {/* Network Status */}
+              {isConnected && !isDevConnected && (
+                <div className="content-card mb-8">
+                  <h2 className="text-2xl font-bold mb-4">Network Status</h2>
+                  <div className={`p-4 rounded-lg border ${
+                    chainId === 421614 
+                      ? 'bg-green-900/20 border-green-500/30' 
+                      : 'bg-red-900/20 border-red-500/30'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-3 h-3 rounded-full ${
+                        chainId === 421614 ? 'bg-green-400' : 'bg-red-400'
+                      }`}></div>
+                      <span className={`font-medium ${
+                        chainId === 421614 ? 'text-green-400' : 'text-red-400'
+                      }`}>
+                        {chainId === 421614 ? 'Correct Network' : 'Wrong Network'}
+                      </span>
+                    </div>
+                    <p className={`text-sm ${
+                      chainId === 421614 ? 'text-green-300' : 'text-red-300'
+                    }`}>
+                      Current: {chainId === 421614 ? 'Arbitrum Sepolia' : `Chain ID ${chainId}`}
+                    </p>
+                    {chainId !== 421614 && (
+                      <p className="text-red-200 text-xs mt-1">
+                        Please switch to Arbitrum Sepolia to interact with the DAO
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* DAO Status Card */}
               <div className="content-card mb-8">
                 <h2 className="text-2xl font-bold mb-6">DAO Status</h2>
@@ -206,7 +245,7 @@ export default function DAOPage() {
                     </p>
                     <Button
                       onClick={handleJoinDAO}
-                      disabled={isJoining || isWritePending || isConfirming}
+                      disabled={isJoining || isWritePending || isConfirming || (isConnected && !isDevConnected && chainId !== 421614)}
                       className="bg-green-600 hover:bg-green-700 text-white"
                     >
                       {isJoining || isWritePending || isConfirming
@@ -216,6 +255,11 @@ export default function DAOPage() {
                     </Button>
                     {isConfirmed && (
                       <p className="text-green-400 mt-2">Successfully joined the DAO!</p>
+                    )}
+                    {isConnected && !isDevConnected && chainId !== 421614 && (
+                      <p className="text-red-400 mt-2 text-sm">
+                        Please switch to Arbitrum Sepolia network to join the DAO
+                      </p>
                     )}
                   </div>
                 )}
