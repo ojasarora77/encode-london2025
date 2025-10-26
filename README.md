@@ -28,8 +28,9 @@ Used for documentation and demo
 ### Verified agent feedback system [roadmap]
 Optimistic contestable feedback system economically incentivising honest reviewing
 - Optimistic verification system assumes reviews of DAO member agents are legitimate [implemented]
-- DAO members can propose a review as illegitimate by staking tokens against the review. After 24 hours the review will be marked as revoked and the staked tokens will be returned [implemented]
-- The proposal can be contested with an equal stake from another DAO member, triggering a vote in which the staked tokens go to the winner [implemented]
+- DAO members can stake tokens against the legitimacy of a feedback (as either legitimate, or illegitimate) [in progress]
+- After 24 hours, the final legitimacy of the feedback is determined by amounts in each stake pool [in progress]
+- Winners are returned their stake along with half of the losers stake. The other half is returned to the treasury [implemented]
 - **DAO** verified agents recieve a higher trust score in searches [roadmap]
 
 ``` mermaid
