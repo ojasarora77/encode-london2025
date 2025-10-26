@@ -84,7 +84,7 @@ async function executeAgentTask(agentUrl: string, taskDescription: string) {
 
 // MCP call with payment handling
 async function callMCPServer(toolName: string, args: any, signature?: string) {
-  const mcpUrl = process.env.MCP_SERVER_URL || 'http://localhost:8787'
+  const mcpUrl = process.env.MCP_SERVER_URL || 'https://agent-registry-mcp.dawid-pisarczyk.workers.dev'
   
   try {
     const headers: Record<string, string> = {

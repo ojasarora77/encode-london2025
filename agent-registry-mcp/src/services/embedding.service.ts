@@ -1,4 +1,4 @@
-import { AgentCard } from '../types/agentcard.types.js';
+import { AgentCard } from '../types/agentcard.types';
 import { IEmbeddingService } from './embedding.interface';
 
 export class VeniceEmbeddingService implements IEmbeddingService {

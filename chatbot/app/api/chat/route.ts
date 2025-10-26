@@ -64,7 +64,7 @@ const tools = [
 
 // x402 MCP client with payment handling
 async function callMCPToolWithPayment(toolName: string, args: any, x402Signature?: string) {
-  const mcpUrl = process.env.MCP_SERVER_URL || 'http://localhost:8787'
+  const mcpUrl = process.env.MCP_SERVER_URL || 'https://agent-registry-mcp.dawid-pisarczyk.workers.dev'
   
   try {
     // First attempt - check if payment is required

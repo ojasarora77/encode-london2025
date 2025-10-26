@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // MCP call with payment handling for search page
 async function callMCPServer(toolName: string, args: any, signature?: string) {
-  const mcpUrl = process.env.MCP_SERVER_URL || 'http://localhost:8787'
+  const mcpUrl = process.env.MCP_SERVER_URL || 'https://agent-registry-mcp.dawid-pisarczyk.workers.dev'
   
   try {
     const headers: Record<string, string> = {
