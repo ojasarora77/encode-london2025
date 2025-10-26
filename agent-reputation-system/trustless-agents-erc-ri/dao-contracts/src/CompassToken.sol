@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -24,7 +24,7 @@ contract CompassToken is ERC20, Ownable {
      * @dev Constructor mints initial supply to the deployer
      * @param initialSupply Initial amount of tokens to mint to deployer
      */
-    constructor(uint256 initialSupply) ERC20("Compass Token", "COMPASS") {
+    constructor(uint256 initialSupply) ERC20("Compass Token", "COMPASS") Ownable(msg.sender) {
         require(initialSupply > 0, "Initial supply must be greater than 0");
         require(initialSupply <= MAX_SUPPLY, "Initial supply exceeds maximum");
         

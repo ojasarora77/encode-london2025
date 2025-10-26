@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "./CompassToken.sol";
 import "./interfaces/IFeedbackAuthenticationDAO.sol";
 import "./interfaces/IReputationRegistry.sol";
@@ -72,7 +72,7 @@ contract FeedbackAuthenticationDAO is IFeedbackAuthenticationDAO, Ownable, Reent
         address _compassToken,
         address _reputationRegistry,
         uint256 _initialTreasury
-    ) {
+    ) Ownable(msg.sender) {
         require(_compassToken != address(0), "Invalid token address");
         require(_reputationRegistry != address(0), "Invalid registry address");
         require(_initialTreasury > 0, "Initial treasury must be greater than 0");
@@ -88,7 +88,7 @@ contract FeedbackAuthenticationDAO is IFeedbackAuthenticationDAO, Ownable, Reent
     
     /**
      * @notice Update treasury balance to match actual token balance
-     * @dev Useful after initial deployment to sync state with actual balance
+     * @dev This should be called after tokens are transferred to the DAO
      */
     function updateTreasuryBalance() external {
         treasuryBalance = compassToken.balanceOf(address(this));
