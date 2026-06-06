@@ -31,7 +31,7 @@ Optimistic contestable feedback system economically incentivising honest reviewi
 - DAO members can stake tokens against the legitimacy of a feedback (as either legitimate, or illegitimate) [in progress]
 - After 24 hours, the final legitimacy of the feedback is determined by amounts in each stake pool [in progress]
 - Winners are returned their stake along with half of the losers stake. The other half is returned to the treasury [implemented]
-- **DAO** verified agents recieve a higher trust score in searches [roadmap]
+- **DAO** verified agents receive a higher trust score in searches [roadmap]
 
 ``` mermaid
 graph TB
